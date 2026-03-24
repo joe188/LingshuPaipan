@@ -50,14 +50,34 @@ jobs:
           test -f android/gradle.properties && cat android/gradle.properties || echo "No gradle.properties"
           echo "=== local.properties ==="
           test -f android/local.properties && cat android/local.properties || echo "No local.properties"
+          echo "=== npm version ==="
+          npm --version
+          echo "=== node version ==="
+          node --version
 
       - name: Install Deps
         run: npm install
 
       - name: Build APK
+        id: build_apk
+        continue-on-error: true
         run: |
           cd android
-          gradle --no-daemon --stacktrace --info clean assembleRelease
+          gradle --no-daemon --stacktrace --info clean assembleRelease 2>&1 | tee /tmp/build.log
+          echo "BUILD_EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
+          echo "BUILD_LOG=/tmp/build.log" >> $GITHUB_ENV
+
+      - name: Capture Build Failure Details
+        if: ${{ env.BUILD_EXIT_CODE != 0 }}
+        run: |
+          echo "=== Build failed with exit code ${{ env.BUILD_EXIT_CODE }} ==="
+          echo "=== Last 200 lines of build log ==="
+          tail -200 /tmp/build.log || true
+          echo "=== Searching for common error patterns ==="
+          grep -i "error\|exception\|failed" /tmp/build.log || true
+          echo "=== Checking output directories ==="
+          ls -la app/build/outputs/apk/ 2>/dev/null || echo "No APK output"
+          find app/build -name "*.log" -exec echo "Found log: {}" \; -exec tail -10 {} \; 2>/dev/null || true
 
       - name: Show Result
         run: |
@@ -69,8 +89,6 @@ jobs:
             echo "💡 Please check Actions tab or contact admin for artifact access."
           else
             echo "❌ FAILED: APK not found!"
-            echo "🔍 Checking for error logs..."
-            ls -la android/app/build/outputs/apk/ 2>/dev/null || echo "No output directory"
-            find android/app/build -name "*.log" -o -name "*.txt" 2>/dev/null | head -10
+            echo "🔍 Build log captured. Check previous steps for details."
             exit 1
           fi
