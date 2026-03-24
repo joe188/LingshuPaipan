@@ -31,7 +31,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        yarn install --frozen-lockfile || npm install
+        if [ -f yarn.lock ]; then
+          yarn install --frozen-lockfile
+        else
+          npm ci
+        fi
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
