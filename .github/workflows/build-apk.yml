@@ -33,6 +33,24 @@ jobs:
         with:
           gradle-version: '8.3'
 
+      - name: Debug Environment
+        run: |
+          echo "=== Java Version ==="
+          java -version
+          echo "=== Gradle Version ==="
+          gradle --version
+          echo "=== Android SDK ==="
+          echo "ANDROID_HOME=${ANDROID_HOME}"
+          ls -la $ANDROID_HOME 2>/dev/null || echo "ANDROID_HOME not set"
+          echo "=== Project Structure ==="
+          ls -la
+          echo "=== android/ ==="
+          ls -la android/
+          echo "=== gradle.properties ==="
+          test -f android/gradle.properties && cat android/gradle.properties || echo "No gradle.properties"
+          echo "=== local.properties ==="
+          test -f android/local.properties && cat android/local.properties || echo "No local.properties"
+
       - name: Install Deps
         run: npm install
 
@@ -51,5 +69,8 @@ jobs:
             echo "💡 Please check Actions tab or contact admin for artifact access."
           else
             echo "❌ FAILED: APK not found!"
+            echo "🔍 Checking for error logs..."
+            ls -la android/app/build/outputs/apk/ 2>/dev/null || echo "No output directory"
+            find android/app/build -name "*.log" -o -name "*.txt" 2>/dev/null | head -10
             exit 1
           fi
