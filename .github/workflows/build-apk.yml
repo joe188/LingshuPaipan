@@ -12,20 +12,27 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v4
-        with: { node-version: '18' }
+        with:
+          node-version: '18'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.3'
 
       - name: Install Deps
         run: npm install
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with: { java-version: '17', distribution: 'temurin' }
-
       - name: Build APK
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease
+          gradle --no-daemon --stacktrace --info clean assembleRelease
 
       - name: Show Result
         run: |
