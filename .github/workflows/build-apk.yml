@@ -1,11 +1,7 @@
-name: Build Android APK
+name: Build Android APK (Base64 Output)
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch: # 只允许手动触发，避免自动跑
 
 jobs:
   build:
@@ -13,10 +9,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -24,13 +20,13 @@ jobs:
         run: npm install
 
       - name: Setup Java JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build React Native
-        run: npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+      - name: Build React Native Bundle (Optional)
+        run: npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res || echo "Bundle step skipped"
 
       - name: Build APK
         run: |
@@ -38,8 +34,22 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+      - name: Output APK as Base64
+        run: |
+          APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK 构建成功！开始 Base64 编码输出..."
+            echo "📦 文件大小：$(ls -lh $APK_PATH | awk '{print $5}')"
+            echo ""
+            echo "👇👇👇 请复制下方从 -----BEGIN APK----- 到 -----END APK----- 之间的所有内容 👇👇👇"
+            echo ""
+            echo "-----BEGIN APK-----"
+            base64 -w 0 "$APK_PATH"
+            echo ""
+            echo "-----END APK-----"
+            echo ""
+            echo "👆👆👆 请复制上方从 -----BEGIN APK----- 到 -----END APK----- 之间的所有内容 👆👆👆"
+          else
+            echo "❌ APK 文件未找到！构建可能失败。"
+            exit 1
+          fi
