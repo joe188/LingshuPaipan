@@ -73,11 +73,15 @@ jobs:
           echo "=== Full tree of app/build/outputs ==="
           find android/app/build/outputs -type f 2>/dev/null | sort
           echo "=== Full tree of app/build (filtered) ==="
-          find android/app/build -type f \( -name "*.apk" -o -name "*.log" -o -name "*.json" \) 2>/dev/null | sort
+          find android/app/build -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.log" -o -name "*.json" \) 2>/dev/null | sort
           echo "=== APK files found ==="
           find android/app/build -name "*.apk" -type f 2>/dev/null | wc -l
+          echo "=== AAB files found ==="
+          find android/app/build -name "*.aab" -type f 2>/dev/null | wc -l
           echo "=== Listing all APK files with details ==="
           find android/app/build -name "*.apk" -type f 2>/dev/null -exec ls -lh {} \;
+          echo "=== Listing all AAB files with details ==="
+          find android/app/build -name "*.aab" -type f 2>/dev/null -exec ls -lh {} \;
           echo "=== Checking for output-metadata.json ==="
           find android/app/build/outputs -name "output-metadata.json" -type f 2>/dev/null -exec echo "Found: {}" \; -exec cat {} \;
 
@@ -104,8 +108,13 @@ jobs:
             echo "💡 Please check Actions tab or contact admin for artifact access."
             echo "📁 Full listing:"
             find android/app/build -name "*.apk" -type f -exec ls -lh {} \;
+          elif [ -n "$(find android/app/build -name "*.aab" -type f 2>/dev/null | head -1)" ]; then
+            echo "⚠️  APK not found, but AAB (Android App Bundle) was generated"
+            find android/app/build -name "*.aab" -type f -exec ls -lh {} \;
+            echo "💡 To generate APK from AAB, use bundletool or change build config"
+            exit 1
           else
-            echo "❌ FAILED: No APK file found in any output directory!"
+            echo "❌ FAILED: No APK or AAB file found in any output directory!"
             echo "🔍 Listing all output directories:"
             find android/app/build/outputs -type d 2>/dev/null | head -20
             echo "🔍 Checking if build truly succeeded:"
