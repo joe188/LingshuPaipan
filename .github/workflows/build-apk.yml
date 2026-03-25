@@ -67,6 +67,20 @@ jobs:
           echo "BUILD_EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
           echo "BUILD_LOG=/tmp/build.log" >> $GITHUB_ENV
 
+      - name: List All APK Outputs
+        if: ${{ env.BUILD_EXIT_CODE == 0 }}
+        run: |
+          echo "=== Full APK search before result ==="
+          find android/app/build/outputs -type f -name "*.apk" 2>/dev/null
+          echo "=== Directory tree (first level) ==="
+          find android/app/build/outputs -type d 2>/dev/null | head -20
+          echo "=== Contents of each output/apk directory ==="
+          for dir in $(find android/app/build/outputs -type d -name "apk" 2>/dev/null); do
+            echo "--- $dir ---"
+            ls -la "$dir" 2>/dev/null
+            find "$dir" -name "*.apk" 2>/dev/null -exec ls -lh {} \;
+          done
+
       - name: Capture Build Failure Details
         if: ${{ env.BUILD_EXIT_CODE != 0 }}
         run: |
