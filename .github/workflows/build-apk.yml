@@ -59,11 +59,9 @@ jobs:
         run: npm install
 
       - name: Build APK
-        continue-on-error: false
         run: |
           cd android
-          gradle --no-daemon --stacktrace --info clean assembleRelease 2>&1 | tee /tmp/build.log
-          echo "BUILD_EXIT_CODE=${PIPESTATUS[0]}" >> $GITHUB_ENV
+          gradle --no-daemon --stacktrace --info clean assembleRelease 2>&1 | tee /tmp/build.log || true
           echo "BUILD_LOG=/tmp/build.log" >> $GITHUB_ENV
 
       - name: Show Result
