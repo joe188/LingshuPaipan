@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { GuochaoButton } from '../components/GuochaoButton';
 import { GuochaoCard } from '../components/GuochaoCard';
-import { colors, fonts, spacing } from '../styles/theme';
+import { colors, fonts, spacing, radii } from '../styles/theme';
 
 interface HomeScreenProps {
   onStartDivination?: () => void;

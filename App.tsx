@@ -5,9 +5,9 @@
 
 import React, { useState } from 'react';
 import { StatusBar, StyleSheet, View, Text, SafeAreaView } from 'react-native';
-import { HomeScreen } from './src/screens/HomeScreen';
-import { BaZiInputScreen } from './src/screens/BaZiInputScreen';
-import { ResultScreen } from './src/screens/ResultScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import BaZiInputScreen from './src/screens/BaZiInputScreen';
+import ResultScreen from './src/screens/ResultScreen';
 import { colors } from './src/styles/theme';
 
 // 简单路由状态
