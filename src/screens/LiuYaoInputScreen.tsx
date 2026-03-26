@@ -9,7 +9,6 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Animated,
 } from 'react-native';
 import { colors, fonts, spacing, radii } from '../styles/theme';
 import { GuochaoButton } from '../components/GuochaoButton';
@@ -27,10 +26,11 @@ export const LiuYaoInputScreen: React.FC<LiuYaoInputScreenProps> = ({
   const [yaoLines, setYaoLines] = useState<number[]>([]);
   const [isShaking, setIsShaking] = useState(false);
   const [coins, setCoins] = useState<boolean[]>([true, true, true]);
+  const [isComplete, setIsComplete] = useState(false);
 
   // 摇卦（模拟抛铜钱）
   const shakeCoins = () => {
-    if (yaoLines.length >= 6) return;
+    if (yaoLines.length >= 6 || isComplete) return;
     
     setIsShaking(true);
     
@@ -58,13 +58,9 @@ export const LiuYaoInputScreen: React.FC<LiuYaoInputScreenProps> = ({
       setYaoLines(newYaoLines);
       setIsShaking(false);
       
-      // 如果已经摇了 6 次，生成卦象
+      // 如果已经摇了 6 次，显示完成
       if (newYaoLines.length === 6) {
-        // 这里调用引擎生成卦象
-        setTimeout(() => {
-          // TODO: 调用 LiuYaoEngine
-          onResult && onResult({ yaoLines: newYaoLines });
-        }, 500);
+        setIsComplete(true);
       }
     }, 800);
   };
@@ -72,6 +68,14 @@ export const LiuYaoInputScreen: React.FC<LiuYaoInputScreenProps> = ({
   const reset = () => {
     setYaoLines([]);
     setCoins([true, true, true]);
+    setIsComplete(false);
+  };
+
+  // 处理查看结果
+  const handleViewResult = () => {
+    if (yaoLines.length === 6) {
+      onResult && onResult({ yaoLines });
+    }
   };
 
   const getYaoTypeText = (type: number) => {
@@ -124,12 +128,20 @@ export const LiuYaoInputScreen: React.FC<LiuYaoInputScreenProps> = ({
             已摇 {yaoLines.length} 爻，还需 {6 - yaoLines.length} 爻
           </Text>
 
-          <GuochaoButton
-            title={isShaking ? '摇卦中...' : '开始摇卦'}
-            onPress={shakeCoins}
-            disabled={isShaking || yaoLines.length >= 6}
-            style={styles.shakeButton}
-          />
+          {isComplete ? (
+            <GuochaoButton
+              title="查看结果"
+              onPress={handleViewResult}
+              style={styles.shakeButton}
+            />
+          ) : (
+            <GuochaoButton
+              title={isShaking ? '摇卦中...' : '开始摇卦'}
+              onPress={shakeCoins}
+              disabled={isShaking || yaoLines.length >= 6}
+              style={styles.shakeButton}
+            />
+          )}
         </GuochaoCard>
 
         {/* 已得爻展示 */}
@@ -157,7 +169,7 @@ export const LiuYaoInputScreen: React.FC<LiuYaoInputScreenProps> = ({
 
         {/* 操作按钮 */}
         <View style={styles.actionButtons}>
-          {yaoLines.length > 0 && yaoLines.length < 6 && (
+          {yaoLines.length > 0 && !isComplete && (
             <GuochaoButton
               title="重新开始"
               onPress={reset}
