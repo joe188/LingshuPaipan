@@ -1,270 +1,305 @@
 /**
- * HomeScreen - 首页
- * 功能：展示今日运势、开始排盘入口、历史记录
+ * 首页 - 灵枢智能排盘
+ * 功能：展示今日运势、功能入口
  */
-
 import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Image,
 } from 'react-native';
-import { GuochaoButton } from '../components/GuochaoButton';
-import { GuochaoCard } from '../components/GuochaoCard';
 import { colors, fonts, spacing, radii } from '../styles/theme';
+import { GuochaoCard } from '../components/GuochaoCard';
+import { GuochaoButton } from '../components/GuochaoButton';
+
+const { width } = Dimensions.get('window');
 
 interface HomeScreenProps {
-  onStartDivination?: () => void;
+  onStartLiuYao?: () => void;
+  onStartQiMen?: () => void;
   onViewHistory?: () => void;
 }
 
-// Mock 数据
-const mockTodayFortune = {
-  date: '2026 年 3 月 23 日 星期一',
-  lunar: '农历二月初四',
-  fortune: '小吉',
-  advice: '宜静不宜动，适合沉淀学习',
-  wuxing: {
-    wood: 25,
-    fire: 20,
-    earth: 30,
-    metal: 15,
-    water: 10,
-  },
-};
-
-const mockHistory = [
-  { id: '1', date: '2026-03-23', time: '10:30', title: '事业运势' },
-  { id: '2', date: '2026-03-22', time: '08:15', title: '感情运势' },
-  { id: '3', date: '2026-03-20', time: '15:45', title: '财运分析' },
-];
-
 export const HomeScreen: React.FC<HomeScreenProps> = ({
-  onStartDivination,
+  onStartLiuYao,
+  onStartQiMen,
   onViewHistory,
 }) => {
+  const today = new Date().toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  });
+
+  const lunarDate = '农历二月初四';
+  const wuXing = '乙巳年 己卯月 壬午日';
+  const fortune = '小吉';
+  const yi = '学习、沉淀、静思';
+  const ji = '远行、投资、争吵';
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* 顶部问候 */}
+        {/* 头部标题 */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>你好，有缘人 👋</Text>
-          <Text style={styles.date}>{mockTodayFortune.date}</Text>
-          <Text style={styles.lunarDate}>{mockTodayFortune.lunar}</Text>
+          <Text style={styles.title}>灵虾排盘</Text>
+          <Text style={styles.subtitle}>灵枢智能排盘 · 传承千年智慧</Text>
         </View>
 
         {/* 今日运势卡片 */}
-        <GuochaoCard 
-          title="今日运势" 
-          variant="pattern"
-          style={styles.fortuneCard}
-        >
-          <View style={styles.fortuneContent}>
+        <GuochaoCard style={styles.fortuneCard}>
+          <View style={styles.dateSection}>
+            <Text style={styles.dateText}>{today}</Text>
+            <Text style={styles.lunarText}>{lunarDate}</Text>
+            <Text style={styles.wuXingText}>{wuXing}</Text>
+          </View>
+
+          <View style={styles.fortuneSection}>
             <View style={styles.fortuneBadge}>
-              <Text style={styles.fortuneText}>{mockTodayFortune.fortune}</Text>
+              <Text style={styles.fortuneText}>{fortune}</Text>
             </View>
-            <Text style={styles.advice}>{mockTodayFortune.advice}</Text>
-            
-            {/* 五行分布简图 */}
-            <View style={styles.wuxingContainer}>
-              <Text style={styles.wuxingLabel}>五行能量</Text>
-              <View style={styles.wuxingBars}>
-                <View style={[styles.wuxingBar, { width: `${mockTodayFortune.wuxing.wood}%`, backgroundColor: colors.wood }]} />
-                <View style={[styles.wuxingBar, { width: `${mockTodayFortune.wuxing.fire}%`, backgroundColor: colors.fire }]} />
-                <View style={[styles.wuxingBar, { width: `${mockTodayFortune.wuxing.earth}%`, backgroundColor: colors.earth }]} />
-                <View style={[styles.wuxingBar, { width: `${mockTodayFortune.wuxing.metal}%`, backgroundColor: colors.metal }]} />
-                <View style={[styles.wuxingBar, { width: `${mockTodayFortune.wuxing.water}%`, backgroundColor: colors.water }]} />
-              </View>
+          </View>
+
+          <View style={styles.yiJiSection}>
+            <View style={styles.yiJiRow}>
+              <Text style={styles.yiLabel}>宜</Text>
+              <Text style={styles.yiText}>{yi}</Text>
+            </View>
+            <View style={styles.yiJiRow}>
+              <Text style={styles.jiLabel}>忌</Text>
+              <Text style={styles.jiText}>{ji}</Text>
             </View>
           </View>
         </GuochaoCard>
 
-        {/* 主要操作区 */}
-        <View style={styles.actions}>
-          <GuochaoButton
-            title="开始排盘"
-            variant="primary"
-            size="large"
-            onPress={onStartDivination}
-            style={styles.mainButton}
-          />
-          
-          <GuochaoButton
-            title="查看历史"
-            variant="outline"
-            size="medium"
-            onPress={onViewHistory}
-            style={styles.secondaryButton}
-          />
+        {/* 功能入口 */}
+        <View style={styles.functionSection}>
+          <Text style={styles.functionTitle}>功能选择</Text>
+
+          <View style={styles.functionGrid}>
+            {/* 六爻排盘 */}
+            <TouchableOpacity
+              style={[styles.functionCard, styles.liuYaoCard]}
+              onPress={onStartLiuYao}
+              activeOpacity={0.7}
+            >
+              <View style={styles.functionIcon}>
+                <Text style={styles.iconText}>☰</Text>
+              </View>
+              <Text style={styles.functionName}>六爻排盘</Text>
+              <Text style={styles.functionDesc}>文王卦 · 占卜吉凶</Text>
+            </TouchableOpacity>
+
+            {/* 奇门遁甲 */}
+            <TouchableOpacity
+              style={[styles.functionCard, styles.qiMenCard]}
+              onPress={onStartQiMen}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.functionIcon, styles.qiMenIcon]}>
+                <Text style={[styles.iconText, styles.qiMenIconText]}>☯</Text>
+              </View>
+              <Text style={styles.functionName}>奇门遁甲</Text>
+              <Text style={styles.functionDesc}>择吉时 · 辨方位</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* 最近记录 */}
-        <GuochaoCard title="最近记录" variant="elevated">
-          {mockHistory.map((item) => (
-            <View key={item.id} style={styles.historyItem}>
-              <View style={styles.historyInfo}>
-                <Text style={styles.historyDate}>{item.date}</Text>
-                <Text style={styles.historyTime}>{item.time}</Text>
-              </View>
-              <Text style={styles.historyTitle}>{item.title}</Text>
-              <Text style={styles.historyIcon}>📋</Text>
-            </View>
-          ))}
-        </GuochaoCard>
+        {/* 历史记录入口 */}
+        <TouchableOpacity
+          style={styles.historyButton}
+          onPress={onViewHistory}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.historyText}>📜 查看历史记录</Text>
+        </TouchableOpacity>
 
-        {/* 底部 spacer */}
+        {/* 底部留白 */}
         <View style={styles.spacer} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.riceWhite,
   },
-  
   scrollView: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
   },
-  
   header: {
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
+    padding: spacing.lg,
+    alignItems: 'center',
   },
-  
-  greeting: {
-    fontFamily: fonts.sourceHan,
-    fontSize: fonts.sizes['2xl'],
-    color: colors.inkBlack,
-    fontWeight: '600',
+  title: {
+    fontSize: fonts.sizes['3xl'],
+    fontFamily: fonts.kaiTi,
+    color: colors.cinnabarRed,
+    fontWeight: 'bold',
   },
-  
-  date: {
-    fontFamily: fonts.sourceHan,
-    fontSize: fonts.sizes.md,
+  subtitle: {
+    fontSize: fonts.sizes.sm,
+    fontFamily: fonts.songTi,
     color: colors.gray[600],
     marginTop: spacing.xs,
   },
-  
-  lunarDate: {
-    fontFamily: fonts.kaiTi,
-    fontSize: fonts.sizes.sm,
-    color: colors.cinnabarRed,
-    marginTop: spacing.xs,
-  },
-  
   fortuneCard: {
-    marginBottom: spacing.xl,
+    margin: spacing.lg,
+    padding: spacing.lg,
   },
-  
-  fortuneContent: {
+  dateSection: {
     alignItems: 'center',
-  },
-  
-  fortuneBadge: {
-    backgroundColor: colors.cinnabarRed,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.full,
     marginBottom: spacing.md,
   },
-  
-  fortuneText: {
-    fontFamily: fonts.kaiTi,
+  dateText: {
     fontSize: fonts.sizes.lg,
-    color: colors.white,
-    fontWeight: '600',
+    fontFamily: fonts.songTi,
+    color: colors.inkBlack,
   },
-  
-  advice: {
-    fontFamily: fonts.sourceHan,
+  lunarText: {
     fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
     color: colors.gray[700],
-    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  wuXingText: {
+    fontSize: fonts.sizes.sm,
+    fontFamily: fonts.kaiTi,
+    color: colors.gray[600],
+    marginTop: spacing.xs,
+  },
+  fortuneSection: {
+    alignItems: 'center',
     marginBottom: spacing.lg,
   },
-  
-  wuxingContainer: {
-    width: '100%',
-    marginTop: spacing.md,
-  },
-  
-  wuxingLabel: {
-    fontFamily: fonts.sourceHan,
-    fontSize: fonts.sizes.sm,
-    color: colors.gray[600],
-    marginBottom: spacing.sm,
-  },
-  
-  wuxingBars: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    height: 8,
+  fortuneBadge: {
+    backgroundColor: colors.cinnabarRed,
+    paddingHorizontal: spacing.xl * 2,
+    paddingVertical: spacing.md,
     borderRadius: radii.full,
-    backgroundColor: colors.gray[200],
-    overflow: 'hidden',
   },
-  
-  wuxingBar: {
-    height: '100%',
+  fortuneText: {
+    color: colors.riceWhite,
+    fontSize: fonts.sizes.lg,
+    fontFamily: fonts.kaiTi,
+    fontWeight: 'bold',
   },
-  
-  actions: {
-    marginBottom: spacing.xl,
+  yiJiSection: {
+    borderTopWidth: 1,
+    borderTopColor: colors.gray[200],
+    paddingTop: spacing.md,
   },
-  
-  mainButton: {
-    marginBottom: spacing.md,
-  },
-  
-  secondaryButton: {
-    width: '100%',
-  },
-  
-  historyItem: {
+  yiJiRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
+    marginBottom: spacing.sm,
   },
-  
-  historyInfo: {
-    width: 80,
-  },
-  
-  historyDate: {
-    fontFamily: fonts.sourceHan,
-    fontSize: fonts.sizes.sm,
-    color: colors.inkBlack,
-    fontWeight: '500',
-  },
-  
-  historyTime: {
-    fontFamily: fonts.sourceHan,
-    fontSize: fonts.sizes.xs,
-    color: colors.gray[500],
-  },
-  
-  historyTitle: {
-    flex: 1,
-    fontFamily: fonts.sourceHan,
+  yiLabel: {
     fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
+    color: colors.cinnabarRed,
+    fontWeight: 'bold',
+    marginRight: spacing.sm,
+  },
+  yiText: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.songTi,
+    color: colors.inkBlack,
+  },
+  jiLabel: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
+    color: colors.gray[500],
+    fontWeight: 'bold',
+    marginRight: spacing.sm,
+  },
+  jiText: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.songTi,
     color: colors.gray[700],
   },
-  
-  historyIcon: {
-    fontSize: fonts.sizes.lg,
+  functionSection: {
+    paddingHorizontal: spacing.lg,
   },
-  
+  functionTitle: {
+    fontSize: fonts.sizes.lg,
+    fontFamily: fonts.kaiTi,
+    color: colors.inkBlack,
+    marginBottom: spacing.md,
+  },
+  functionGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  functionCard: {
+    flex: 1,
+    marginHorizontal: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  liuYaoCard: {
+    backgroundColor: 'rgba(196, 60, 60, 0.05)',
+    borderColor: colors.cinnabarRed,
+  },
+  qiMenCard: {
+    backgroundColor: 'rgba(212, 167, 106, 0.05)',
+    borderColor: colors.gold,
+  },
+  functionIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.cinnabarRed,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  qiMenIcon: {
+    backgroundColor: colors.gold,
+  },
+  iconText: {
+    fontSize: 32,
+    color: colors.riceWhite,
+  },
+  qiMenIconText: {
+    color: colors.inkBlack,
+  },
+  functionName: {
+    fontSize: fonts.sizes.lg,
+    fontFamily: fonts.kaiTi,
+    color: colors.inkBlack,
+    fontWeight: 'bold',
+    marginBottom: spacing.xs,
+  },
+  functionDesc: {
+    fontSize: fonts.sizes.sm,
+    fontFamily: fonts.songTi,
+    color: colors.gray[600],
+  },
+  historyButton: {
+    margin: spacing.lg,
+    padding: spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray[300],
+    borderRadius: radii.md,
+  },
+  historyText: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
+    color: colors.gray[700],
+  },
   spacer: {
     height: spacing['6xl'],
   },
