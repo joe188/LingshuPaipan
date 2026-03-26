@@ -1,0 +1,94 @@
+name: Build and Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送 v1.0.0 这样的标签时触发
+    branches:
+      - master  # 或者每次推送到 master 时自动构建（可选）
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 设置 Java
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 3. 安装 Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 4. 安装依赖
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd android
+          chmod +x gradlew
+
+      # 5. 生成 JS Bundle
+      - name: Generate JS Bundle
+        run: |
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res/
+
+      # 6. 构建 Release APK
+      - name: Build Release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      # 7. 创建 Release 并上传 APK
+      - name: Create Release and Upload APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+          body: |
+            ## 🎉 灵枢智能排盘 ${{ github.ref_name }}
+
+            ### ✨ 更新内容
+            - 六爻排盘功能
+            - 奇门遁甲排盘功能
+            - 国潮风格 UI 设计
+
+            ### 📦 安装说明
+            1. 下载下方 APK 文件
+            2. 在 Android 设备上安装
+            3. 开启"未知来源"权限
+
+            ### 📱 技术信息
+            - 包名：com.divination.bazi
+            - 大小：约 20MB
+            - Android 版本：5.0+
+
+            ---
+            *Automatically built by GitHub Actions*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 8. （可选）如果只是推送到 master，创建 Artifacts
+      - name: Upload APK as Artifact
+        if: github.ref == 'refs/heads/master' && !startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
