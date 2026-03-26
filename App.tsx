@@ -1,81 +1,95 @@
 /**
- * 周易排盘 App - 主入口
+ * 灵枢智能排盘 App - 主入口
  * 国潮风格设计，让传统文化触手可及
  */
-
 import React, { useState } from 'react';
-import { StatusBar, StyleSheet, View, Text, SafeAreaView } from 'react-native';
-import HomeScreen from './src/screens/HomeScreen';
-import BaZiInputScreen from './src/screens/BaZiInputScreen';
-import ResultScreen from './src/screens/ResultScreen';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { colors } from './src/styles/theme';
 
-// 简单路由状态
-type Screen = 'home' | 'input' | 'result' | 'ai';
+// 导入所有页面
+import HomeScreen from './src/screens/HomeScreen';
+import LiuYaoInputScreen from './src/screens/LiuYaoInputScreen';
+import LiuYaoResultScreen from './src/screens/LiuYaoResultScreen';
+import QiMenInputScreen from './src/screens/QiMenInputScreen';
+import QiMenResultScreen from './src/screens/QiMenResultScreen';
+
+// 页面类型
+type ScreenType = 
+  | 'home'
+  | 'liuyao-input'
+  | 'liuyao-result'
+  | 'qimen-input'
+  | 'qimen-result';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-  const [baziData, setBaziData] = useState<any>(null);
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
+  const [liuyaoResult, setLiuYaoResult] = useState<any>(null);
+  const [qimenResult, setQiMenResult] = useState<any>(null);
 
-  const handleStartDivination = () => {
-    setCurrentScreen('input');
+  // 导航处理函数
+  const navigateTo = (screen: ScreenType) => {
+    setCurrentScreen(screen);
   };
 
-  const handleBack = () => {
+  const goBack = () => {
     setCurrentScreen('home');
   };
 
-  const handleSubmitBazi = (data: any) => {
-    setBaziData(data);
-    setCurrentScreen('result');
+  // 处理六爻排盘完成
+  const handleLiuYaoComplete = (result: any) => {
+    setLiuYaoResult(result);
+    navigateTo('liuyao-result');
   };
 
-  const handleViewHistory = () => {
-    // TODO: 实现历史记录功能
-    console.log('查看历史记录');
+  // 处理奇门排盘完成
+  const handleQiMenComplete = (result: any) => {
+    setQiMenResult(result);
+    navigateTo('qimen-result');
   };
 
-  const handleShare = () => {
-    // TODO: 实现分享功能
-    console.log('分享排盘结果');
-  };
-
-  const handleAIInterpret = () => {
-    // TODO: 实现 AI 解卦功能
-    console.log('AI 解卦');
-  };
-
+  // 渲染当前页面
   const renderScreen = () => {
     switch (currentScreen) {
       case 'home':
         return (
           <HomeScreen
-            onStartDivination={handleStartDivination}
-            onViewHistory={handleViewHistory}
+            onStartLiuYao={() => navigateTo('liuyao-input')}
+            onStartQiMen={() => navigateTo('qimen-input')}
+            onViewHistory={() => alert('历史记录功能开发中...')}
           />
         );
-      case 'input':
+      case 'liuyao-input':
         return (
-          <BaZiInputScreen
-            onBack={handleBack}
-            onSubmit={handleSubmitBazi}
+          <LiuYaoInputScreen
+            onBack={goBack}
+            onResult={handleLiuYaoComplete}
           />
         );
-      case 'result':
+      case 'liuyao-result':
         return (
-          <ResultScreen
-            onBack={handleBack}
-            onShare={handleShare}
-            onAIInterpret={handleAIInterpret}
+          <LiuYaoResultScreen
+            result={liuyaoResult}
+            onBack={goBack}
+            onRebook={() => navigateTo('liuyao-input')}
+          />
+        );
+      case 'qimen-input':
+        return (
+          <QiMenInputScreen
+            onBack={goBack}
+            onResult={handleQiMenComplete}
+          />
+        );
+      case 'qimen-result':
+        return (
+          <QiMenResultScreen
+            result={qimenResult}
+            onBack={goBack}
+            onRebook={() => navigateTo('qimen-input')}
           />
         );
       default:
-        return (
-          <HomeScreen
-            onStartDivination={handleStartDivination}
-            onViewHistory={handleViewHistory}
-          />
-        );
+        return <HomeScreen onStartLiuYao={() => {}} onStartQiMen={() => {}} onViewHistory={() => {}} />;
     }
   };
 
