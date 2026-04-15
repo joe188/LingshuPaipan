@@ -1,0 +1,15 @@
+{
+  "id": "50d5a3a9-d5c0-4142-bad5-a57025a2b832",
+  "type": "test",
+  "description": "Test task from pure JS",
+  "status": "completed",
+  "progress": 100,
+  "createdAt": 1776163362705,
+  "updatedAt": 1776163362706,
+  "allowResume": false,
+  "metadata": {},
+  "completedAt": 1776163362707,
+  "artifacts": [
+    "test-artifact.txt"
+  ]
+}
