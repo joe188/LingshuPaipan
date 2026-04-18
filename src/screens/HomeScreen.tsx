@@ -12,7 +12,7 @@ import {
   Dimensions,
   ActivityIndicator,
   TouchableOpacity,
-  ImageBackground,
+  Alert,
   Animated,
 } from 'react-native';
 import { GuochaoButton } from '../components/GuochaoButton';
@@ -58,7 +58,7 @@ const mockTodayFortune = {
 const BAGUA_SYMBOLS = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
 
 export const HomeScreen: React.FC = () => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const navigation = useNavigation<any>();
   const [history, setHistory] = useState<DivinationRecord[]>([]);
   const [stats, setStats] = useState<{ total: number; favoriteCount: number }>({ total: 0, favoriteCount: 0 });
   const [loading, setLoading] = useState(true);
@@ -277,7 +277,9 @@ export const HomeScreen: React.FC = () => {
             >
               <Text style={[styles.secondaryIcon, { fontSize: 32, textAlign: 'center' }]}>{card.icon}</Text>
               <Text style={styles.secondaryTitle}>{card.title}</Text>
-              <Text style={[styles.secondaryDesc, { whiteSpace: 'pre-line' }]}>{card.desc}</Text>
+              <Text style={styles.secondaryDesc}>{card.desc.split('\n').map((line, i) => (
+                <Text key={i}>{line}\n</Text>
+              ))}</Text>
             </TouchableOpacity>
           ))}
         </View>

@@ -69,13 +69,13 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
       await geolocation.requestAuthorization('whenInUse');
       
       geolocation.getCurrentPosition(
-        (position) => {
+        (position: any) => {
           const { latitude, longitude } = position.coords;
           setLongitude(longitude);
           
           // 查找最近城市
-          const cities = getCities();
-          const nearest = cities.find(c => 
+          const cities: any = getCities();
+          const nearest = cities.find((c: any) => 
             Math.abs(c.latitude - latitude) < 1 && Math.abs(c.longitude - longitude) < 1
           );
           
@@ -89,7 +89,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           }
           setLoading(false);
         },
-        (error) => {
+        (error: any) => {
           Alert.alert('❌ 定位失败', '无法获取当前位置，请手动选择城市');
           setLoading(false);
         },
@@ -99,7 +99,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           maximumAge: 10000,
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert('❌ 错误', '定位功能不可用');
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
       return;
     }
 
-    const adjusted = adjustSolarTime(year, month, day, hour, longitude);
+    const adjusted: any = adjustSolarTime(year, month, day, hour, longitude);
     const timeDiff = (longitude - 120) * 4; // 分钟
     
     setSolarTimeInfo(
