@@ -1,0 +1,201 @@
+{
+  "tokens": "./tokens/default.json",
+  "pages": [
+    {
+      "name": "灵枢排盘 - 国潮风格",
+      "artboards": [
+        {
+          "name": "首页",
+          "width": 375,
+          "height": 812,
+          "backgroundColor": "#F5F0E6",
+          "layout": { "type": "vertical-stack", "paddingTop": 0, "paddingHorizontal": 0, "gap": 0 },
+          "layers": [
+            {
+              "type": "rectangle",
+              "name": "header-bg",
+              "width": 375,
+              "height": 200,
+              "style": { "backgroundColor": "#C43C3C", "cornerRadius": 0 }
+            },
+            {
+              "type": "text",
+              "name": "header-title",
+              "value": "灵枢排盘",
+              "style": { 
+                "fontSize": 32, 
+                "fontFamily": "Kaiti SC", 
+                "fontWeight": "bold",
+                "color": "#FFFFFF",
+                "textAlign": "center"
+              },
+              "x": 0,
+              "y": 60,
+              "width": 375
+            },
+            {
+              "type": "text",
+              "name": "header-subtitle",
+              "value": "传承千年智慧",
+              "style": { 
+                "fontSize": 14, 
+                "fontFamily": "Songti SC", 
+                "color": "#FFFFFF",
+                "opacity": 0.9,
+                "textAlign": "center"
+              },
+              "x": 0,
+              "y": 100,
+              "width": 375
+            },
+            {
+              "type": "group",
+              "name": "bagua-decor",
+              "layout": { "type": "horizontal-stack", "gap": 20, "justifyContent": "center" },
+              "x": 0,
+              "y": 140,
+              "width": 375,
+              "children": [
+                { "type": "text", "value": "☰", "style": { "fontSize": 28, "color": "#D4A76A" } },
+                { "type": "text", "value": "☷", "style": { "fontSize": 28, "color": "#D4A76A" } },
+                { "type": "text", "value": "☵", "style": { "fontSize": 28, "color": "#D4A76A" } },
+                { "type": "text", "value": "☲", "style": { "fontSize": 28, "color": "#D4A76A" } }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "name": "fortune-card",
+              "width": 343,
+              "height": 200,
+              "style": { "backgroundColor": "#FFFFFF", "cornerRadius": 20 },
+              "x": 16,
+              "y": 160,
+              "shadow": { "x": 0, "y": 4, "blur": 12, "color": "rgba(0,0,0,0.1)" }
+            },
+            {
+              "type": "text",
+              "name": "fortune-date",
+              "value": "2026 年 4 月 19 日 星期日",
+              "style": { "fontSize": 16, "fontFamily": "Kaiti SC", "color": "#1A1A1A", "textAlign": "center" },
+              "x": 32,
+              "y": 180,
+              "width": 311
+            },
+            {
+              "type": "rectangle",
+              "name": "fortune-badge",
+              "width": 80,
+              "height": 40,
+              "style": { "backgroundColor": "#C43C3C", "cornerRadius": 8 },
+              "x": 147,
+              "y": 210
+            },
+            {
+              "type": "text",
+              "name": "fortune-text",
+              "value": "上吉",
+              "style": { "fontSize": 24, "fontFamily": "Kaiti SC", "color": "#FFFFFF", "textAlign": "center" },
+              "x": 147,
+              "y": 215,
+              "width": 80
+            },
+            {
+              "type": "group",
+              "name": "feature-cards",
+              "layout": { "type": "vertical-stack", "gap": 16 },
+              "x": 16,
+              "y": 380,
+              "width": 343,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "name": "liuyao-card",
+                  "width": 343,
+                  "height": 120,
+                  "style": { 
+                    "backgroundColor": "#667eea",
+                    "cornerRadius": 16
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "🪙 六爻占卜",
+                      "style": { "fontSize": 20, "fontFamily": "Kaiti SC", "color": "#FFFFFF", "textAlign": "center" },
+                      "x": 0,
+                      "y": 20,
+                      "width": 343
+                    },
+                    {
+                      "type": "text",
+                      "value": "摇卦问事，洞察天机",
+                      "style": { "fontSize": 14, "color": "#FFFFFF", "opacity": 0.9, "textAlign": "center" },
+                      "x": 0,
+                      "y": 60,
+                      "width": 343
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "name": "bazi-card",
+                  "width": 343,
+                  "height": 120,
+                  "style": { 
+                    "backgroundColor": "#f093fb",
+                    "cornerRadius": 16
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "🔮 八字排盘",
+                      "style": { "fontSize": 20, "fontFamily": "Kaiti SC", "color": "#FFFFFF", "textAlign": "center" },
+                      "x": 0,
+                      "y": 20,
+                      "width": 343
+                    },
+                    {
+                      "type": "text",
+                      "value": "四柱命理，推算人生",
+                      "style": { "fontSize": 14, "color": "#FFFFFF", "opacity": 0.9, "textAlign": "center" },
+                      "x": 0,
+                      "y": 60,
+                      "width": 343
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "name": "qimen-card",
+                  "width": 343,
+                  "height": 120,
+                  "style": { 
+                    "backgroundColor": "#4facfe",
+                    "cornerRadius": 16
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "🗺️ 奇门遁甲",
+                      "style": { "fontSize": 20, "fontFamily": "Kaiti SC", "color": "#FFFFFF", "textAlign": "center" },
+                      "x": 0,
+                      "y": 20,
+                      "width": 343
+                    },
+                    {
+                      "type": "text",
+                      "value": "排局布阵，趋吉避凶",
+                      "style": { "fontSize": 14, "color": "#FFFFFF", "opacity": 0.9, "textAlign": "center" },
+                      "x": 0,
+                      "y": 60,
+                      "width": 343
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

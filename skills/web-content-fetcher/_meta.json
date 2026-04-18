@@ -1,0 +1,11 @@
+{
+  "owner": "mrtommywu",
+  "slug": "web-content-fetcher",
+  "displayName": "Web Content Fetcher",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1772768760754,
+    "commit": "https://github.com/openclaw/skills/commit/d6a0918e38a3082f644522599e113b110d8c3d59"
+  },
+  "history": []
+}

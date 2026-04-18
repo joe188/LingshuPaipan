@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "humanizer": {
+      "version": "1.0.0",
+      "installedAt": 1776470100592
+    },
+    "skill-vetter": {
+      "version": "1.0.0",
+      "installedAt": 1776470410471
+    },
+    "memory-setup": {
+      "version": "1.0.0",
+      "installedAt": 1776470418806
+    },
+    "web-content-fetcher": {
+      "version": "1.0.1",
+      "installedAt": 1776470429329
+    },
+    "nano-banana-pro": {
+      "version": "1.0.1",
+      "installedAt": 1776470436420
+    }
+  }
+}

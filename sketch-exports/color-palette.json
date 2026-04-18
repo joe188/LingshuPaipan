@@ -1,0 +1,19 @@
+{
+  "name": "灵枢排盘 - 国潮风格",
+  "colors": {
+    "primary": "#C43C3C",
+    "secondary": "#D4A76A",
+    "background": "#F5F0E6",
+    "text": "#1A1A1A",
+    "accent": "#667eea",
+    "gradient1": "#f093fb",
+    "gradient2": "#4facfe"
+  },
+  "wuxing": {
+    "wood": "#4CAF50",
+    "fire": "#F44336",
+    "earth": "#FFC107",
+    "metal": "#FFFFFF",
+    "water": "#2196F3"
+  }
+}

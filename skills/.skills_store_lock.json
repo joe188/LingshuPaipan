@@ -30,6 +30,24 @@
       "zip_url": "https://lightmake.site/api/v1/download?slug=proactive-agent",
       "source": "skillhub",
       "version": "3.1.0"
+    },
+    "openclaw-agent-optimize": {
+      "name": "Openclaw Agent Optimize",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=openclaw-agent-optimize",
+      "source": "skillhub",
+      "version": "1.2.1"
+    },
+    "sipbrainstorming": {
+      "name": "Brainstorming",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=sipbrainstorming",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "runesleo-systematic-debugging": {
+      "name": "Systematic Debugging",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=runesleo-systematic-debugging",
+      "source": "skillhub",
+      "version": "3.0.0"
     }
   }
 }

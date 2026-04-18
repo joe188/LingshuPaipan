@@ -1,0 +1,67 @@
+Unknown command ‘dump’
+
+Usage: sketchtool <command> [<args>]
+                  [--help | -h]
+                  [--cropped{=YES|NO} | --no-cropped | -q {<YES|NO>}]
+                  [--background=<string> | -g <string>]
+                  [--context=<string> | -C <string>]
+                  [--filename=<string> | -F <string>]
+                  [--export-page-as-fallback{=YES|NO} | --no-export-page-as-fallback | -B {<YES|NO>}]
+                  [--manifest=<string> | -M <string>]
+                  [--bounds=<rectangle> | -b <rectangle>]
+                  [--concurrent{=YES|NO} | --no-concurrent | -U {<YES|NO>}]
+                  [--suffixing{=YES|NO} | --no-suffixing | -x {<YES|NO>}]
+                  [--wait-for-exit{=YES|NO} | --no-wait-for-exit | -W {<YES|NO>}]
+                  [--without-waiting-for-plugin{=YES|NO} | --no-without-waiting-for-plugin | -P {<YES|NO>}]
+                  [--progressive{=YES|NO} | --no-progressive | -p {<YES|NO>}]
+                  [--output=<path> | -o <path>] [--version | -v]
+                  [--fix{=YES|NO} | --no-fix | -E {<YES|NO>}]
+                  [--trimmed{=YES|NO} | --no-trimmed | -t {<YES|NO>}]
+                  [--application=<path> | -A <path>]
+                  [--fragments{=YES|NO} | --no-fragments | - {<YES|NO>}]
+                  [--scales=<path> | -s <path>]
+                  [--max-size=<float> | -m <float>]
+                  [--crashlog{=YES|NO} | --no-crashlog | -l {<YES|NO>}]
+                  [--new-instance{=YES|NO} | --no-new-instance | -N {<YES|NO>}]
+                  [--safemode{=YES|NO} | --no-safemode | -S {<YES|NO>}]
+                  [--include-symbols{=YES|NO} | --no-include-symbols | -I {<YES|NO>}]
+                  [--batchSize=<integer> | -e <integer>]
+                  [--without-activating{=YES|NO} | --no-without-activating | -Q {<YES|NO>}]
+                  [--outputJSON=<path> | -J <path>]
+                  [--item=<string> | -i <string>]
+                  [--serial{=YES|NO} | --no-serial | -R {<YES|NO>}]
+                  [--use-id-for-name{=YES|NO} | --no-use-id-for-name | -n {<YES|NO>}]
+                  [--save-for-web{=YES|NO} | --no-save-for-web | -w {<YES|NO>}]
+                  [--timeout=<float> | -T <float>]
+                  [--async-drawing{=YES|NO} | --no-async-drawing | -D {<YES|NO>}]
+                  [--group-contents-only{=YES|NO} | --no-group-contents-only | -G {<YES|NO>}]
+                  [--compression=<float> | -c <float>]
+                  [--patchList=<string> | -L <string>]
+                  [--items=<string> | -a <string>]
+                  [--formats=<string> | -f <string>]
+                  [--reveal{=YES|NO} | --no-reveal | -r {<YES|NO>}]
+                  [--overwriting{=YES|NO} | --no-overwriting | -V {<YES|NO>}]
+                  [--json{=YES|NO} | --no-json | -j {<YES|NO>}]
+                  [--versionID=<string> | -d <string>]
+
+Commands:
+	detach               Detach symbols from a Sketch document
+	diff                 Creates a patch between different versions of the same document
+	duplicates           Examines the given document for objects with duplicate IDs. Offers an option to fix the duplicates- but note not all kinds of duplicates can currently be fixed.
+
+	export artboards     Export one or more artboards
+	export layers        Export one or more layers
+	export pages         Export an area from one or more pages
+	export preview       Export a preview image for a document
+	export slices        Export one or more slices
+
+	help                 Show this help message.
+	metadata             List the metadata for a document.
+	migrate              Opens and saves the given document, migrating the document to the current Sketch version. All cached coedit patches are discarded.
+	patch                Applies a set of patches to a Sketch document. Patches are either specified via a space separated list of the patch files as arguments or via the --patchList argument.
+	run                  Run a command from a plugin, inside Sketch.
+	run-script           Run plugin code, inside Sketch.
+	sendCrashReports     Look for reports of previous crashes, and send them to a Sketch issue tracker. Only works for crashes that happened while the `--crashlog` option was given.
+
+
+See ‘sketchtool help <command>’ for more information on a specific command.
