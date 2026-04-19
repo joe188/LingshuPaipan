@@ -18,7 +18,8 @@ import {
 } from 'react-native';
 import theme from '../styles/theme';
 import { calculateBaZi, adjustSolarTime, BaZiResult } from '../utils/bazi-calculator';
-import { getCities, getCoordinate } from '../data/city-coordinates-full';
+import { CITY_COORDINATES, getCoordinate } from '../data/city-coordinates-full';
+import { solarToLunar, getGanZhiYear, getZodiac } from '../utils/lunar-calendar';
 
 const { colors, fonts, spacing, radii } = theme;
 
@@ -26,14 +27,15 @@ const { colors, fonts, spacing, radii } = theme;
 const HOUR_NAMES = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
 const HOUR_TIME = ['23-01', '01-03', '03-05', '05-07', '07-09', '09-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23'];
 
-// 年份范围
-const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_RANGE = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
+// 年份范围（1900-2100，共 201 年）
+const MIN_YEAR = 1900;
+const MAX_YEAR = 2100;
+const YEAR_RANGE = Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => MIN_YEAR + i);
 const MONTH_RANGE = Array.from({ length: 12 }, (_, i) => i + 1);
 const DAY_RANGE = Array.from({ length: 31 }, (_, i) => i + 1);
 
 export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [year, setYear] = useState(CURRENT_YEAR);
+  const [year, setYear] = useState(1990);
   const [month, setMonth] = useState(1);
   const [day, setDay] = useState(1);
   const [hour, setHour] = useState(0);
@@ -41,6 +43,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const [locationName, setLocationName] = useState('');
   const [loading, setLoading] = useState(false);
   const [solarTimeInfo, setSolarTimeInfo] = useState('');
+  const [isLunar, setIsLunar] = useState(false); // 是否农历
   
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -49,6 +52,26 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   const fadeAnim = new Animated.Value(0);
+
+  /**
+   * 获取农历月份名称
+   */
+  const getLunarMonthName = (month: number): string => {
+    const months = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
+    return months[month - 1] || '';
+  };
+
+  /**
+   * 获取农历日期名称
+   */
+  const getLunarDayName = (day: number): string => {
+    const days = [
+      '初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+      '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+      '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'
+    ];
+    return days[(day - 1) % 30] || '';
+  };
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -66,7 +89,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     try {
       const geolocation = require('react-native-geolocation-service');
       
-      await geolocation.requestAuthorization('whenInUse');
+      await geolocation.requestAuthorization('always');
       
       geolocation.getCurrentPosition(
         (position: any) => {
@@ -74,8 +97,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           setLongitude(longitude);
           
           // 查找最近城市
-          const cities: any = getCities();
-          const nearest = cities.find((c: any) => 
+          const nearest = CITY_COORDINATES.find((c: any) => 
             Math.abs(c.latitude - latitude) < 1 && Math.abs(c.longitude - longitude) < 1
           );
           
@@ -114,17 +136,18 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
       return;
     }
 
-    const adjusted: any = adjustSolarTime(year, month, day, hour, longitude);
+    const localTime = hour + 0.5; // 假设当前小时的中间值
+    const adjustedHour: number = adjustSolarTime(longitude, localTime);
     const timeDiff = (longitude - 120) * 4; // 分钟
     
     setSolarTimeInfo(
       `出生地经度：${longitude}°\n` +
       `与东经 120°时差：${timeDiff > 0 ? '+' : ''}${timeDiff.toFixed(1)}分钟\n` +
-      `真太阳时：${adjusted.hour}时 (${HOUR_NAMES[adjusted.hour]})`
+      `真太阳时：${adjustedHour}时 (${HOUR_NAMES[adjustedHour]})`
     );
-    setHour(adjusted.hour);
+    setHour(adjustedHour);
     
-    Alert.alert('✅ 校正完成', `真太阳时已调整为${HOUR_NAMES[adjusted.hour]}`);
+    Alert.alert('✅ 校正完成', `真太阳时已调整为${HOUR_NAMES[adjustedHour]}`);
   };
 
   /**
@@ -241,6 +264,31 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             </View>
 
             <Text style={styles.timeDetail}>{HOUR_TIME[hour]} ({hour}时)</Text>
+            
+            {/* 农历切换 */}
+            <View style={styles.lunarToggle}>
+              <TouchableOpacity
+                style={[styles.toggleButton, !isLunar && styles.toggleButtonActive]}
+                onPress={() => setIsLunar(false)}
+              >
+                <Text style={[styles.toggleText, !isLunar && styles.toggleTextActive]}>公历</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.toggleButton, isLunar && styles.toggleButtonActive]}
+                onPress={() => setIsLunar(true)}
+              >
+                <Text style={[styles.toggleText, isLunar && styles.toggleTextActive]}>农历</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* 农历信息显示 */}
+            {isLunar && (
+              <View style={styles.lunarInfo}>
+                <Text style={styles.lunarText}>
+                  农历：{year}年 {getLunarMonthName(month)}月 {getLunarDayName(day)}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* 地点选择卡片 */}
@@ -577,6 +625,51 @@ const styles = StyleSheet.create({
   pickerItemTextSelected: {
     color: colors.cinnabarRed,
     fontWeight: fonts.weights.bold,
+  },
+  lunarToggle: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray[200],
+  },
+  toggleButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.gray[300],
+    backgroundColor: colors.white,
+  },
+  toggleButtonActive: {
+    backgroundColor: colors.cinnabarRed,
+    borderColor: colors.cinnabarRed,
+  },
+  toggleText: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.sourceHan,
+    color: colors.gray[600],
+    fontWeight: fonts.weights.medium,
+  },
+  toggleTextActive: {
+    color: colors.white,
+    fontWeight: fonts.weights.bold,
+  },
+  lunarInfo: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.riceWhite,
+    borderRadius: radii.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.cinnabarRed,
+  },
+  lunarText: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
+    color: colors.inkBlack,
+    textAlign: 'center',
   },
 });
 

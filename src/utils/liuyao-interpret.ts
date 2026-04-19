@@ -1,200 +1,321 @@
 /**
- * 六爻解卦服务
- * 基于 64 卦数据库进行完整解读
+ * 六爻本地解析工具
+ * 包含：断卦方法、六亲、五行、六神、世应爻等
  */
-import gua64Data from '../data/gua64.json';
 
-// 六爻结果数据结构
-export interface LiuYaoResult {
-  guaId: number;            // 本卦 ID (1-64)
-  guaName: string;          // 本卦名称
-  bianguaId?: number;       // 变卦 ID
-  bianguaName?: string;
-  dianhuaIndex?: number;   // 动爻位置（0-5，从下往上）
-  yaoTexts: string[];      // 六爻爻辞（含动爻标识）
-  duanyan: string;         // 卦辞断言
-  summary: string;         // 综合解读
+import { hexagramData, GUA64_NAME } from './liuyao-data';
+
+// 六亲
+const SIX_RELATIONS = ['父母', '兄弟', '子孙', '妻财', '官鬼', '父母'];
+
+// 六神（按日干排列）
+const SIX_GODS = ['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武'];
+
+// 五行
+const FIVE_ELEMENTS = ['金', '木', '水', '火', '土'];
+
+// 八卦五行属性
+const BAGUA_ELEMENT: Record<string, string> = {
+  '乾': '金',
+  '兑': '金',
+  '离': '火',
+  '震': '木',
+  '巽': '木',
+  '坎': '水',
+  '艮': '土',
+  '坤': '土',
+};
+
+// 八卦对应自然现象
+const BAGUA_IMAGE: Record<string, string> = {
+  '乾': '天',
+  '兑': '泽',
+  '离': '火',
+  '震': '雷',
+  '巽': '风',
+  '坎': '水',
+  '艮': '山',
+  '坤': '地',
+};
+
+/**
+ * 六爻完整解析
+ */
+export interface LiuYaoAnalysis {
+  guaName: string; // 本卦名
+  transformedGuaName: string; // 变卦名
+  upperGua: string; // 上卦
+  lowerGua: string; // 下卦
+  summary: string; // 总体断语
+  analysis: {
+    method: string; // 断卦方法
+    sixRelations: string; // 六亲分析
+    fiveElements: string; // 五行旺衰
+    sixGods: string; // 六神
+    movingLines: string; // 动爻分析
+    shiYing: string; // 世应爻
+  };
+  advice: string; // 建议
 }
 
 /**
- * 根据六爻生成排盘结果
- * @param yaoList 六爻数组（0-5），每个元素 6 或 9（老阴/老阳）
- * @returns 解卦结果
+ * 生成完整解析
  */
-export function liuyaoInterpret(yaoList: number[]): LiuYaoResult {
-  if (yaoList.length !== 6) {
-    throw new Error('六爻数据必须为6位数组');
-  }
-
-  // 确定本卦：从下往上计算，少阳少阴为静爻，老阴老阳为动爻
-  // 简单算法：直接将六爻转换为卦象
-  const benGua = yaoToGua(yaoList);
-
-  // 查找动爻（老阴 6、老阳 7）
-  const dianhuaIndices = yaoList
-    .map((val, idx) => (val === 6 || val === 7 ? idx : -1))
-    .filter(idx => idx !== -1);
-
-  // 计算变卦：动爻变化后得到
-  const bianYaoList = [...yaoList];
-  dianhuaIndices.forEach(idx => {
-    if (yaoList[idx] === 6) bianYaoList[idx] = 9; // 阴变阳
-    if (yaoList[idx] === 7) bianYaoList[idx] = 6; // 阳变阴
-  });
-  const bianGua = dianhuaIndices.length > 0 ? yaoToGua(bianYaoList) : undefined;
-
-  // 查询卦象信息
-  const benGuaInfo = gua64Data.guaList.find(g => g.id === benGua) || gua64Data.guaList[0];
-  const bianGuaInfo = bianGua ? gua64Data.guaList.find(g => g.id === bianGua) : undefined;
-
-  // 组装爻辞（标注动爻）
-  const yaoTexts = benGuaInfo.yaoTexts.map((text, idx) => {
-    if (dianhuaIndices.includes(idx)) {
-      return `【动】${text}`;
-    }
-    return text;
-  });
-
-  // 综合解读
-  const summary = buildSummary(benGuaInfo, bianGuaInfo, dianhuaIndices);
-
+export const generateFullAnalysis = (
+  lines: number[], // [1,0,1,0,1,0] 从初爻到上爻
+  movingLines: number[], // 动爻索引 [0,2,5]
+  coinResults?: number[] // [6,7,8,9,7,8] 爻值
+): LiuYaoAnalysis => {
+  const guaNum = calculateGuaNumber(lines);
+  const guaName = GUA64_NAME[guaNum] || '未知卦';
+  
+  // 计算变卦
+  const transformedLines = lines.map((line, i) => 
+    movingLines.includes(i) ? (line === 1 ? 0 : 1) : line
+  );
+  const transformedGuaNum = calculateGuaNumber(transformedLines);
+  const transformedGuaName = GUA64_NAME[transformedGuaNum] || '';
+  
+  // 上下卦
+  const lowerGuaNum = guaNum % 8 || 8;
+  const upperGuaNum = Math.floor((guaNum - 1) / 8) + 1;
+  const lowerGua = getGuaNameByNumber(lowerGuaNum);
+  const upperGua = getGuaNameByNumber(upperGuaNum);
+  
+  // 总体断语
+  const summary = generateSummary(guaName, transformedGuaName, movingLines.length);
+  
+  // 详细分析
+  const analysis = {
+    method: analyzeMethod(guaName, lines, movingLines),
+    sixRelations: analyzeSixRelations(lines),
+    fiveElements: analyzeFiveElements(upperGua, lowerGua),
+    sixGods: analyzeSixGods(lines),
+    movingLines: analyzeMovingLines(lines, movingLines, coinResults),
+    shiYing: analyzeShiYing(guaNum),
+  };
+  
+  // 建议
+  const advice = generateAdvice(guaName, transformedGuaName, movingLines.length);
+  
   return {
-    guaId: benGua,
-    guaName: benGuaInfo.name,
-    bianguaId: bianGua,
-    bianguaName: bianGuaInfo?.name,
-    dianhuaIndex: dianhuaIndices.length === 1 ? dianhuaIndices[0] : undefined,
-    yaoTexts,
-    duanyan: benGuaInfo.duanyan,
+    guaName,
+    transformedGuaName,
+    upperGua,
+    lowerGua,
     summary,
+    analysis,
+    advice,
   };
-}
+};
 
 /**
- * 六爻数组转为卦象 ID (1-64)
- * 算法：下爻为上爻，阳爻为9或7，阴爻为6或8
- * 八卦对应：乾1、兑2、离3、震4、巽5、坎6、艮7、坤8
- * 上下卦组合：上卦 * 8 + 下卦 编号（先天八卦数）
+ * 计算卦数（1-64）
  */
-function yaoToGua(yao: number[]): number {
-  // 从下往上：yao[0]=初爻, yao[5]=上爻
-  // 判断八卦
-  const getBaguaFromYao = (start: number): number => {
-    // 取三爻（start, start+1, start+2）
-    const bits = [
-      yao[start] % 2 === 0 ? 0 : 1,           // 初爻/下爻
-      yao[start + 1] % 2 === 0 ? 0 : 1,
-      yao[start + 2] % 2 === 0 ? 0 : 1,
-    ];
-    // 先天八卦数：坤1、艮2、坎3、巽4、中5、乾6、兑7、离8、震9。这里使用简化逆序
-    // 常用先天八卦序号（从1开始）：
-    // 乾(☰)=1, 兑(☱)=2, 离(☲)=3, 震(☳)=4, 巽(☴)=5, 坎(☵)=6, 艮(☶)=7, 坤(☷)=8
-    // 但我们按二进制: 从下到上为 bit0-bit2, 组合为 0-7
-    // bits: [下, 中, 上]，上为最高位，下为最低位
-    const bin = (bits[2] << 2) | (bits[1] << 1) | bits[0];
-    // 映射到先天八卦序号（1-index）
-    // 0: 坤(8), 1: 震(4), 2: 坎(3), 3: 巽(5), 4: 中, 5: 兑(2), 6: 乾(1), 7: 艮(7)
-    const baguaMap: Record<number, number> = {
-      0b000: 8, // 坤 ☷
-      0b001: 4, // 震 ☳
-      0b010: 3, // 坎 ☵
-      0b011: 5, // 巽 ☴
-      0b100: 1, // 乾 ☰
-      0b101: 2, // 兑 ☱
-      0b110: 7, // 艮 ☶
-      0b111: 6, // 离 ☲
-    };
-    return baguaMap[bin];
-  };
-
-  const shangGua = getBaguaFromYao(3); // 三、四、五爻
-  const xiaGua = getBaguaFromYao(0);   // 初、二、三爻
-
-  // 六十四卦编号：上卦×8 + 下卦（上卦从1-8，下卦从1-8）
-  // 注意：先天八卦序：1乾、2兑、3离、4震、5巽、6坎、7艮、8坤
-  // 我们上面返回的是序号，可以按序号组合
-  // 六十四卦序号 = (上卦序号 - 1) * 8 + 下卦序号
-  return (shangGua - 1) * 8 + xiaGua;
-}
+const calculateGuaNumber = (lines: number[]): number => {
+  // 从下往上：初爻、二爻、三爻为下卦；四爻、五爻、上爻为上卦
+  const lower = lines[0] + lines[1] * 2 + lines[2] * 4;
+  const upper = lines[3] + lines[4] * 2 + lines[5] * 4;
+  
+  // 下卦（1-8），上卦（1-8）
+  const lowerNum = lower + 1;
+  const upperNum = upper + 1;
+  
+  // 64 卦序号 = (上卦 -1) * 8 + 下卦
+  return (upperNum - 1) * 8 + lowerNum;
+};
 
 /**
- * 构建综合解读文本
+ * 根据数字获取卦名（八卦）
  */
-function buildSummary(
-  benGua: any,
-  bianGua: any | undefined,
-  dianhuaIndices: number[]
-): string {
-  let summary = `本次占卜得到【${benGua.name}卦】`;
+const getGuaNameByNumber = (num: number): string => {
+  const bagua = ['坤', '震', '坎', '兑', '艮', '离', '巽', '乾'];
+  return bagua[num - 1] || '';
+};
 
-  if (bianGua) {
-    summary += `，变卦为【${bianGua.name}卦】`;
-  }
-
-  if (dianhuaIndices.length === 0) {
-    summary += '，六爻皆静，无动爻。';
-  } else if (dianhuaIndices.length === 1) {
-    const positions = ['初', '二', '三', '四', '五', '上'];
-    summary += `，其中第${positions[dianhuaIndices[0]]}爻为动爻，变为此爻之位。`;
+/**
+ * 生成总体断语
+ */
+const generateSummary = (guaName: string, transformedGuaName: string, movingCount: number): string => {
+  let summary = `【本卦】${guaName}，`;
+  
+  if (movingCount === 0) {
+    summary += '静卦，以本卦卦辞断之。';
+  } else if (movingCount === 1) {
+    summary += `一爻动，以${transformedGuaName}为变卦，综合判断。`;
+  } else if (movingCount <= 3) {
+    summary += `多爻动，事多变化，以${transformedGuaName}为参考。`;
   } else {
-    summary += `，共有${dianhuaIndices.length}个动爻。`;
+    summary += '乱动，事体复杂，宜静观其变。';
   }
-
-  summary += `\n\n卦辞：${benGua.duanyan}\n\n`;
-  summary += `【解读】\n${benGua.duanyan || '暂无详细解读'}`;
-
-  if (bianGua && dianhuaIndices.length === 1) {
-    summary += `\n\n动爻所在位置提示变化，变卦【${bianGua.name}】显示事态发展趋势。`;
-  }
-
-  summary += `\n\n【整体建议】\n`;
-  summary += getAdvice(benGua.id, bianGua?.id, dianhuaIndices.length);
-
+  
   return summary;
-}
+};
 
 /**
- * 根据卦象给出简单建议
+ * 断卦方法分析
  */
-function getAdvice(benGuaId: number, bianGuaId: number | undefined, dianhuaCount: number): string {
-  const gua = gua64Data.guaList.find(g => g.id === benGuaId);
-  if (!gua) return '象征意义不明显，建议静心再求。';
-
-  // 根据卦名和性质给出通用建议
-  const adviceMap: Record<string, string> = {
-    '乾': '天道刚健，宜积极进取，但切忌过刚。',
-    '坤': '地道柔顺，宜包容忍耐，厚德载物。',
-    '屯': '初生艰难，宜守正待时，不可冒进。',
-    '蒙': '启蒙求知，当尊师重道，循序渐进。',
-    '需': '等待时机，应耐心积蓄力量。',
-    '讼': '争讼不利，宜和解，避免冲突。',
-    '师': '统率众人，需纪律严明，正义为先。',
-    '比': '亲和团结，以诚待人，吉祥亨通。',
-    '小畜': '小有积蓄，宜继续蓄力，不可轻举妄动。',
-    '履': '如履虎尾，小心谨慎，可化险为夷。',
-    '泰': '天地交泰，万事亨通，但应居安思危。',
-    '否': '闭塞不通，宜韬光养晦，等待转机。',
-    '同人': '志同道合，和同于人，利于合作。',
-    '大有': '大有所获，富有亨通，但需谦逊。',
-    '谦': '谦逊美德，有终无咎，大吉。',
-    '豫': '愉悦安乐，但应适可而止。',
-    '随': '顺应时势，随从正道，吉祥。',
-    '蛊': '腐败需整治，果断行动，革故鼎新。',
-    '临': '监临天下，宽严并济，可得民望。',
-    '观': '观察审视，知微见著，行正道。',
-    '噬嗑': '刑罚咬合，法制必严，公正执法。',
-    // 其他卦默认
-  };
-
-  return adviceMap[gua.name] || `此卦象征${gua.nature}，${gua.duanyan}。宜顺应卦象所示，把握时机，趋吉避凶。`;
-}
+const analyzeMethod = (guaName: string, lines: number[], movingLines: number[]): string => {
+  // 获取卦辞
+  const gua = hexagramData.find(g => g.name === guaName);
+  const judgement = gua?.judgement || '';
+  
+  let method = '【断卦方法】\n';
+  method += `• 卦辞：${judgement}\n`;
+  
+  if (movingLines.length > 0) {
+    method += `• 动爻：${movingLines.length}个，需参看变卦\n`;
+    method += `• 重点：观察动爻对卦象的影响\n`;
+  }
+  
+  return method;
+};
 
 /**
- * 获取动爻位置文字
+ * 六亲分析
  */
-export function getDianhuaPosition(index: number): string {
+const analyzeSixRelations = (lines: number[]): string => {
+  let analysis = '【六亲分析】\n';
+  
+  // 简化版：根据爻的阴阳分布
+  const yangCount = lines.filter(l => l === 1).length;
+  const yinCount = 6 - yangCount;
+  
+  analysis += `• 阳爻：${yangCount}个，阴爻：${yinCount}个\n`;
+  
+  if (yangCount > yinCount) {
+    analysis += '• 阳盛：主动、刚强、进取\n';
+  } else if (yinCount > yangCount) {
+    analysis += '• 阴盛：被动、柔顺、守成\n';
+  } else {
+    analysis += '• 阴阳平衡：刚柔并济\n';
+  }
+  
+  return analysis;
+};
+
+/**
+ * 五行旺衰分析
+ */
+const analyzeFiveElements = (upperGua: string, lowerGua: string): string => {
+  const upperElement = BAGUA_ELEMENT[upperGua] || '';
+  const lowerElement = BAGUA_ELEMENT[lowerGua] || '';
+  
+  let analysis = '【五行分析】\n';
+  analysis += `• 上卦${upperGua}属${upperElement}\n`;
+  analysis += `• 下卦${lowerGua}属${lowerElement}\n`;
+  
+  // 五行生克
+  const shengKe = getWuXingShengKe(upperElement, lowerElement);
+  if (shengKe) {
+    analysis += `• 关系：${shengKe}\n`;
+  }
+  
+  return analysis;
+};
+
+/**
+ * 五行生克关系
+ */
+const getWuXingShengKe = (upper: string, lower: string): string => {
+  const sheng = { '金': '水', '水': '木', '木': '火', '火': '土', '土': '金' };
+  const ke = { '金': '木', '木': '土', '土': '水', '水': '火', '火': '金' };
+  
+  if (sheng[lower] === upper) {
+    return `下生上（${lower}生${upper}），吉利`;
+  } else if (sheng[upper] === lower) {
+    return `上生下（${upper}生${lower}），泄气`;
+  } else if (ke[lower] === upper) {
+    return `下克上（${lower}克${upper}），不利`;
+  } else if (ke[upper] === lower) {
+    return `上克下（${upper}克${lower}），有利`;
+  } else if (upper === lower) {
+    return '比和，吉利';
+  }
+  
+  return '';
+};
+
+/**
+ * 六神分析
+ */
+const analyzeSixGods = (lines: number[]): string => {
+  return '【六神】\n• 需根据占卜日干确定六神位置\n';
+};
+
+/**
+ * 动爻分析
+ */
+const analyzeMovingLines = (lines: number[], movingLines: number[], coinResults?: number[]): string => {
+  if (movingLines.length === 0) {
+    return '【动爻分析】\n• 静卦，无动爻\n';
+  }
+  
+  let analysis = '【动爻分析】\n';
+  analysis += `• 动爻数量：${movingLines.length}个\n`;
+  
+  movingLines.forEach((index) => {
+    const position = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'][index];
+    const value = coinResults?.[index] || (lines[index] === 1 ? 9 : 6);
+    const isOld = value === 6 || value === 9;
+    
+    analysis += `• ${position}：${value}（${isOld ? '老' : '少'}${lines[index] === 1 ? '阳' : '阴'}），`;
+    
+    if (value === 6) {
+      analysis += '老阴变阳，阴极转阳\n';
+    } else if (value === 9) {
+      analysis += '老阳变阴，阳极转阴\n';
+    }
+  });
+  
+  return analysis;
+};
+
+/**
+ * 世应爻分析
+ */
+const analyzeShiYing = (guaNum: number): string => {
+  // 简化版：根据卦宫确定世爻位置
+  const palace = Math.floor((guaNum - 1) / 8) + 1;
+  const shiPosition = (palace - 1) % 6;
+  
   const positions = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
-  return positions[index] || '未知爻';
-}
+  const shiYao = positions[shiPosition];
+  const yingYao = positions[(shiPosition + 3) % 6];
+  
+  return `【世应爻】\n• 世爻：${shiYao}（代表自己）\n• 应爻：${yingYao}（代表他人/事）\n`;
+};
 
-export default liuyaoInterpret;
+/**
+ * 生成建议
+ */
+const generateAdvice = (guaName: string, transformedGuaName: string, movingCount: number): string => {
+  let advice = '【建议】\n';
+  
+  if (movingCount === 0) {
+    advice += '• 现状稳定，宜守不宜攻\n';
+  } else if (movingCount <= 2) {
+    advice += '• 有变化迹象，宜灵活应对\n';
+  } else {
+    advice += '• 变化较多，宜谨慎行事\n';
+  }
+  
+  if (transformedGuaName) {
+    advice += `• 变卦${transformedGuaName}，提示未来发展方向\n`;
+  }
+  
+  return advice;
+};
+
+/**
+ * 获取卦象含义（简化版）
+ */
+export const getHexagramMeaning = (guaName: string): { summary: string; image: string } | null => {
+  const gua = hexagramData.find(g => g.name === guaName);
+  if (!gua) return null;
+  
+  return {
+    summary: gua.judgement,
+    image: gua.image,
+  };
+};
