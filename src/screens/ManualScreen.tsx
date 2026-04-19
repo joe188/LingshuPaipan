@@ -330,7 +330,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sourceHan,
     color: colors.inkBlack,
     lineHeight: 26,
-    whiteSpace: 'pre-line',
   },
   footer: {
     alignItems: 'center',

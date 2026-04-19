@@ -16,7 +16,6 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../styles/theme';
 
 const { colors, fonts, spacing, radii } = theme;
@@ -71,7 +70,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        timeout: 10000,
       });
 
       if (!response.ok) {
@@ -121,7 +119,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        timeout: 5000,
       });
 
       if (response.ok) {
@@ -588,6 +585,19 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.lg,
     color: colors.cinnabarRed,
     fontWeight: fonts.weights.bold,
+  },
+  knowledgeButton: {
+    backgroundColor: colors.cinnabarRed,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  knowledgeButtonText: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
+    color: colors.white,
+    fontWeight: fonts.weights.semibold,
   },
 });
 
