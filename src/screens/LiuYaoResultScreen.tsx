@@ -113,6 +113,7 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
   const saveToHistory = async (fullAnalysis: LiuYaoAnalysis) => {
     try {
       const record: any = {
+        createdAt: Date.now(),
         baziType: 'liuyao',
         solarDate: new Date().toISOString(),
         lunarDate: '',
@@ -157,7 +158,7 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* 卦名 */}
       <View style={styles.header}>
         <Text style={styles.guaName}>{result.guaName}</Text>
@@ -224,7 +225,7 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
 
       {/* 底部留白 */}
       <View style={styles.footer} />
-    </ScrollView>
+    </View>
   );
 };
 

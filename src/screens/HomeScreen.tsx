@@ -22,9 +22,10 @@ import { DivinationRecord } from '../database/models/DivinationRecord';
 import theme from '../styles/theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { solarToLunar, getGanZhiYear, getZodiac } from '../utils/lunar-calendar';
 
 const { colors, fonts, spacing, radii } = theme;
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 type RootStackParamList = {
   Home: undefined;
@@ -39,20 +40,35 @@ type RootStackParamList = {
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-// Mock 今日运势数据
-const mockTodayFortune = {
-  date: '2026 年 4 月 19 日 星期日',
-  lunar: '农历三月廿二',
-  fortune: '上吉',
-  advice: '宜祭祀、祈福、求嗣、开光',
-  wuxing: {
-    wood: 25,
-    fire: 30,
-    earth: 20,
-    metal: 15,
-    water: 10,
-  },
+// 获取今日日期信息
+const getTodayInfo = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+  const weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][today.getDay()];
+  
+  // 使用万年历获取农历信息
+  const lunarInfo = solarToLunar(year, month, day);
+  
+  return {
+    date: `${year} 年 ${month} 月 ${day} 日 ${weekDay}`,
+    lunar: `农历${lunarInfo.lunarMonthName}${lunarInfo.lunarDayName}`,
+    ganZhiYear: lunarInfo.ganZhiYear,
+    ganZhiMonth: lunarInfo.ganZhiMonth,
+    ganZhiDay: lunarInfo.ganZhiDay,
+    zodiac: lunarInfo.zodiac,
+    wuxing: {
+      wood: 25,
+      fire: 30,
+      earth: 20,
+      metal: 15,
+      water: 10,
+    },
+  };
 };
+
+const todayInfo = getTodayInfo();
 
 // 八卦符号
 const BAGUA_SYMBOLS = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
@@ -185,7 +201,7 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
       {/* 顶部装饰 - 八卦图案 */}
       <View style={styles.baguaHeader}>
         <View style={styles.baguaCircle}>
@@ -215,31 +231,17 @@ export const HomeScreen: React.FC = () => {
       {/* 今日运势卡片 */}
       <Animated.View style={[styles.fortuneCard, { opacity: fadeAnim }]}>
         <View style={styles.fortuneHeader}>
-          <Text style={styles.fortuneDate}>{mockTodayFortune.date}</Text>
-          <Text style={styles.fortuneLunar}>{mockTodayFortune.lunar}</Text>
-        </View>
-        
-        <View style={styles.fortuneMain}>
-          <View style={styles.fortuneBadge}>
-            <Text style={styles.fortuneText}>{mockTodayFortune.fortune}</Text>
-          </View>
-          <Text style={styles.fortuneAdvice}>{mockTodayFortune.advice}</Text>
-        </View>
-
-        {/* 五行能量 */}
-        <View style={styles.wuxingSection}>
-          <Text style={styles.wuxingTitle}>五行能量</Text>
-          {renderWuxingBar('木', mockTodayFortune.wuxing.wood, colors.wood)}
-          {renderWuxingBar('火', mockTodayFortune.wuxing.fire, colors.fire)}
-          {renderWuxingBar('土', mockTodayFortune.wuxing.earth, colors.earth)}
-          {renderWuxingBar('金', mockTodayFortune.wuxing.metal, colors.gold)}
-          {renderWuxingBar('水', mockTodayFortune.wuxing.water, colors.water)}
+          <Text style={styles.fortuneDate}>{todayInfo.date}</Text>
+          <Text style={styles.fortuneLunar}>{todayInfo.lunar}</Text>
+          <Text style={styles.fortuneGanZhi}>
+            {todayInfo.ganZhiYear}年 {todayInfo.ganZhiMonth}月 {todayInfo.ganZhiDay}日
+          </Text>
+          <Text style={styles.fortuneZodiac}>生肖：{todayInfo.zodiac}</Text>
         </View>
       </Animated.View>
 
       {/* 功能入口 */}
       <View style={styles.featuresSection}>
-        <Text style={styles.sectionTitle}>排盘功能</Text>
         <View style={styles.featuresGrid}>
           {featureCards.map((feature, index) => (
             <TouchableOpacity
@@ -253,20 +255,21 @@ export const HomeScreen: React.FC = () => {
               onPress={feature.onPress}
               activeOpacity={0.8}
             >
-              <Text style={[styles.featureIcon, { fontSize: 40, textAlign: 'center' }]}>{feature.icon}</Text>
+              <Text style={[styles.featureIcon, { fontSize: 32, textAlign: 'center' }]}>{feature.icon}</Text>
               <Text style={styles.featureTitle}>{feature.title}</Text>
-              <Text style={styles.featureDesc}>{feature.desc}</Text>
             </TouchableOpacity>
           ))}
         </View>
+      </View>
 
-        {/* 次要功能卡片 */}
-        <View style={styles.secondaryGrid}>
+      {/* 底部功能 */}
+      <View style={styles.bottomSection}>
+        <View style={styles.bottomGrid}>
           {secondaryCards.map((card) => (
             <TouchableOpacity
               key={card.title}
               style={[
-                styles.secondaryCard,
+                styles.bottomCard,
                 {
                   backgroundColor: card.backgroundColor,
                   borderColor: card.borderColor || 'transparent',
@@ -275,58 +278,13 @@ export const HomeScreen: React.FC = () => {
               onPress={card.onPress}
               activeOpacity={0.8}
             >
-              <Text style={[styles.secondaryIcon, { fontSize: 32, textAlign: 'center' }]}>{card.icon}</Text>
-              <Text style={styles.secondaryTitle}>{card.title}</Text>
-              <Text style={styles.secondaryDesc}>{card.desc.split('\n').map((line, i) => (
-                <Text key={i}>{line}\n</Text>
-              ))}</Text>
+              <Text style={[styles.bottomIcon, { fontSize: 24, textAlign: 'center' }]}>{card.icon}</Text>
+              <Text style={styles.bottomTitle}>{card.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
-
-      {/* 历史记录 */}
-      <View style={styles.historySection}>
-        <View style={styles.historyHeader}>
-          <Text style={styles.sectionTitle}>最近记录</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('History')}>
-            <Text style={styles.historyMore}>查看全部 ›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {history.length > 0 ? (
-          history.map((record, index) => (
-            <TouchableOpacity
-              key={record.id}
-              style={styles.historyItem}
-              onPress={() => navigation.navigate('HistoryDetail', { recordId: String(record.id) })}
-            >
-              <View style={styles.historyIconBox}>
-                <Text style={styles.historyIcon}>{getHistoryIcon(record.baziType)}</Text>
-              </View>
-              <View style={styles.historyContent}>
-                <Text style={styles.historyTitle}>{getHistoryTitle(record)}</Text>
-                <Text style={styles.historyLocation} numberOfLines={1}>
-                  {record.location || '未设置地点'}
-                </Text>
-              </View>
-              {record.isFavorite && <Text style={styles.favoriteStar}>⭐</Text>}
-            </TouchableOpacity>
-          ))
-        ) : (
-          <View style={styles.emptyHistory}>
-            <Text style={styles.emptyIcon}>📜</Text>
-            <Text style={styles.emptyText}>暂无历史记录</Text>
-            <Text style={styles.emptyHint}>开始第一次排盘吧</Text>
-          </View>
-        )}
-      </View>
-
-      {/* 底部装饰 */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>灵枢排盘 · 传承千年智慧</Text>
-      </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -350,7 +308,7 @@ const styles = StyleSheet.create({
   
   // 八卦头部
   baguaHeader: {
-    height: 180,
+    height: 140,
     backgroundColor: colors.cinnabarRed,
     justifyContent: 'center',
     alignItems: 'center',
@@ -363,9 +321,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   baguaCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: colors.gold,
     justifyContent: 'center',
     alignItems: 'center',
@@ -374,22 +332,22 @@ const styles = StyleSheet.create({
   },
   baguaSymbol: {
     position: 'absolute',
-    fontSize: 24,
+    fontSize: 20,
     color: colors.inkBlack,
     fontWeight: 'bold',
   },
   taiji: {
-    fontSize: 48,
+    fontSize: 40,
     color: colors.inkBlack,
   },
   
   // 运势卡片
   fortuneCard: {
-    margin: spacing.xl,
-    marginTop: -40,
+    margin: spacing.lg,
+    marginTop: -30,
     backgroundColor: colors.white,
     borderRadius: radii['2xl'],
-    padding: spacing.xl,
+    padding: spacing.lg,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -398,10 +356,9 @@ const styles = StyleSheet.create({
   },
   fortuneHeader: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
   },
   fortuneDate: {
-    fontSize: fonts.sizes.lg,
+    fontSize: fonts.sizes.md,
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     fontWeight: fonts.weights.bold,
@@ -410,6 +367,19 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     fontFamily: fonts.songTi,
     color: colors.gray[600],
+    marginTop: spacing.xs,
+  },
+  fortuneGanZhi: {
+    fontSize: fonts.sizes.md,
+    fontFamily: fonts.kaiTi,
+    color: colors.cinnabarRed,
+    marginTop: spacing.sm,
+    fontWeight: fonts.weights.semibold,
+  },
+  fortuneZodiac: {
+    fontSize: fonts.sizes.sm,
+    fontFamily: fonts.sourceHan,
+    color: colors.gray[700],
     marginTop: spacing.xs,
   },
   fortuneMain: {
@@ -483,15 +453,16 @@ const styles = StyleSheet.create({
   
   // 功能区域
   featuresSection: {
-    paddingHorizontal: spacing.xl,
-    marginBottom: spacing['2xl'],
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   sectionTitle: {
-    fontSize: fonts.sizes.xl,
+    fontSize: fonts.sizes.lg,
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     fontWeight: fonts.weights.bold,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   featuresGrid: {
     flexDirection: 'row',
@@ -499,165 +470,72 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   featureCard: {
-    width: (width - spacing['2xl'] * 2 - spacing.lg) / 2,
-    aspectRatio: 1,
+    width: (width - spacing.lg * 2 - spacing.md) / 2,
+    height: 100,
     borderRadius: radii.xl,
-    padding: spacing.lg,
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+    padding: spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   featureIcon: {
-    fontSize: 40,
+    fontSize: 32,
     textAlign: 'center',
   },
   featureTitle: {
-    fontSize: fonts.sizes.lg,
+    fontSize: fonts.sizes.md,
     fontFamily: fonts.kaiTi,
     color: colors.white,
     fontWeight: fonts.weights.bold,
     textAlign: 'center',
+    marginTop: spacing.xs,
   },
   featureDesc: {
-    fontSize: fonts.sizes.sm,
+    fontSize: fonts.sizes.xs,
     fontFamily: fonts.sourceHan,
     color: colors.white,
     textAlign: 'center',
     opacity: 0.9,
   },
   
-  // 历史记录
-  historySection: {
-    paddingHorizontal: spacing.xl,
-    marginBottom: spacing['2xl'],
+  // 底部功能
+  bottomSection: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
-  historyHeader: {
+  bottomGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
   },
-  historyMore: {
-    fontSize: fonts.sizes.sm,
-    fontFamily: fonts.sourceHan,
-    color: colors.cinnabarRed,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
+  bottomCard: {
+    width: (width - spacing.lg * 2 - spacing.md) / 2,
+    height: 80,
     borderRadius: radii.lg,
     padding: spacing.md,
-    marginBottom: spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  historyIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: radii.lg,
-    backgroundColor: colors.riceWhite,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  historyIcon: {
-    fontSize: 24,
-  },
-  historyContent: {
-    flex: 1,
-  },
-  historyTitle: {
-    fontSize: fonts.sizes.md,
-    fontFamily: fonts.kaiTi,
-    color: colors.inkBlack,
-    fontWeight: fonts.weights.semibold,
-    marginBottom: spacing.xs,
-  },
-  historyLocation: {
-    fontSize: fonts.sizes.sm,
-    fontFamily: fonts.sourceHan,
-    color: colors.gray[600],
-  },
-  favoriteStar: {
-    fontSize: 20,
-  },
-  
-  // 空状态
-  emptyHistory: {
-    alignItems: 'center',
-    paddingVertical: spacing['3xl'],
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: spacing.md,
-  },
-  emptyText: {
-    fontSize: fonts.sizes.lg,
-    fontFamily: fonts.kaiTi,
-    color: colors.gray[600],
-    marginBottom: spacing.sm,
-  },
-  emptyHint: {
-    fontSize: fonts.sizes.sm,
-    fontFamily: fonts.sourceHan,
-    color: colors.gray[500],
-  },
-  
-  // 次要功能卡片
-  secondaryGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
-  },
-  secondaryCard: {
-    width: (width - spacing['2xl'] * 2 - spacing.md) / 2,
-    aspectRatio: 1.3,
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
     borderWidth: 2,
   },
-  secondaryIcon: {
+  bottomIcon: {
     textAlign: 'center',
   },
-  secondaryTitle: {
-    fontSize: fonts.sizes.md,
+  bottomTitle: {
+    fontSize: fonts.sizes.sm,
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     fontWeight: fonts.weights.bold,
     textAlign: 'center',
-  },
-  secondaryDesc: {
-    fontSize: fonts.sizes.xs,
-    fontFamily: fonts.sourceHan,
-    color: colors.gray[700],
-    textAlign: 'center',
-    opacity: 0.8,
-    lineHeight: 16,
-  },
-  
-  // 底部
-  footer: {
-    padding: spacing['2xl'],
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: fonts.sizes.sm,
-    fontFamily: fonts.songTi,
-    color: colors.gray[500],
+    marginTop: spacing.xs,
   },
 });
 

@@ -121,6 +121,7 @@ export const QiMenScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         });
       } else {
         const record: Partial<DivinationRecord> = {
+          createdAt: Date.now(),
           baziType: 'qimen',
           solarDate: new Date(year, month - 1, day).toISOString(),
           lunarDate: '',
@@ -172,6 +173,7 @@ export const QiMenScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         });
       } else {
         const record: Partial<DivinationRecord> = {
+          createdAt: Date.now(),
           baziType: 'qimen',
           solarDate: new Date(year, month - 1, day).toISOString(),
           lunarDate: '',
@@ -231,7 +233,7 @@ export const QiMenScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* 时间选择 */}
       <GuochaoCard title="选择时间">
         <View style={styles.pickerRow}>
@@ -307,7 +309,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F0E6',
+  },
+  scrollContent: {
     padding: spacing.lg,
+    paddingBottom: spacing['3xl'],
   },
   pickerRow: {
     flexDirection: 'row',

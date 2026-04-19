@@ -119,13 +119,9 @@ export const KnowledgeScreen: React.FC<{ navigation: any }> = ({ navigation }) =
       </View>
 
       {/* 分类选择 */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesContainer}
-      >
+      <View style={styles.categoriesContainer}>
         {categories.map(renderCategory)}
-      </ScrollView>
+      </View>
 
       {/* 知识列表 */}
       <FlatList
@@ -155,7 +151,7 @@ export const KnowledgeScreen: React.FC<{ navigation: any }> = ({ navigation }) =
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.modalBody}>
+            <View style={styles.modalBody}>
               {selectedItem && (
                 <>
                   <View style={styles.detailCategory}>
@@ -177,7 +173,7 @@ export const KnowledgeScreen: React.FC<{ navigation: any }> = ({ navigation }) =
                   </View>
                 </>
               )}
-            </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>

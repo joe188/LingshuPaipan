@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { GuochaoButton } from '../components/GuochaoButton';
 import { GuochaoCard } from '../components/GuochaoCard';
 import { insertRecord } from '../database/queries/history';
@@ -63,15 +64,50 @@ interface ResultScreenProps {
   onBack?: () => void;
   onShare?: () => void;
   onAIInterpret?: () => void;
-  baziData?: BaziData;
 }
 
 export const ResultScreen: React.FC<ResultScreenProps> = ({
   onBack,
   onShare,
   onAIInterpret,
-  baziData,
 }) => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  
+  // 从 route.params 获取数据
+  const routeParams = (route.params as any);
+  
+  // 调试日志
+  console.log('🔍 route.params:', JSON.stringify(routeParams, null, 2));
+  console.log('🔍 routeParams?.result:', JSON.stringify(routeParams?.result, null, 2));
+  
+  // BaZiInputScreen 传递的是 { type: 'bazi', result: { ...result, year, month, day, hour, location } }
+  // 需要将其转换为 ResultScreen 期望的格式
+  const result = routeParams?.result;
+  
+  // 安全检查：确保 result 存在且包含必要字段
+  const baziData = result && result.ganZhi ? {
+    year: result.year,
+    month: result.month,
+    day: result.day,
+    hour: result.hour,
+    hourLabel: `${result.hour}时`,
+    location: result.location || '',
+    calendarType: 'solar' as const,
+    solarCorrection: false,
+    baziResult: {
+      solarDate: result.solarDate,
+      lunarDate: result.lunarDate,
+      ganZhi: result.ganZhi,
+      fiveElements: result.fiveElements,
+      shishen: result.shishen,
+      wuxingDistribution: result.wuxingDistribution,
+    },
+  } : null;
+  
+  console.log('🔍 baziData:', JSON.stringify(baziData, null, 2));
+  console.log('🔍 baziData?.baziResult?.ganZhi:', JSON.stringify(baziData?.baziResult?.ganZhi, null, 2));
+  
   const [activeTab, setActiveTab] = useState<'wuxing' | 'shishen'>('wuxing');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -79,7 +115,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
   // 使用传入的 baziData 或默认空数据（必须先定义，供 useEffect 使用）
   const data = baziData?.baziResult;
-  const hasData = !!data;
+  const hasData = !!data && !!data.ganZhi;
 
   // 计算 ganZhi（如果数据存在）
   const ganZhi = data?.ganZhi;
@@ -147,13 +183,37 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
   // 使用上方已定义的 ganZhi（data?.ganZhi），如果 data 存在
 
+  // 如果数据不存在，显示空状态
+  if (!hasData || !ganZhi) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>排盘结果</Text>
+          <View style={styles.shareButton} />
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>暂无排盘数据</Text>
+          <GuochaoButton
+            title="返回重新排盘"
+            variant="primary"
+            size="medium"
+            onPress={() => navigation.goBack()}
+            style={{ marginTop: spacing.lg }}
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <View style={styles.scrollView}>
         {/* 标题栏 */}
         <View style={[styles.header, { paddingTop: spacing.xl }]}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>排盘结果</Text>
@@ -381,7 +441,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         </View>
 
         <View style={styles.spacer} />
-      </ScrollView>
+      </View>
     </View>
   );
 };

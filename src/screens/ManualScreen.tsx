@@ -226,7 +226,7 @@ export const ManualScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* 头部 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>📖 使用手册</Text>
@@ -268,7 +268,7 @@ export const ManualScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </View>
 
       <View style={styles.bottomPadding} />
-    </ScrollView>
+    </View>
   );
 };
 

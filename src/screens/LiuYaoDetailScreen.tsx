@@ -76,7 +76,7 @@ const LiuYaoDetailScreen: React.FC<LiuYaoDetailScreenProps> = ({ route, navigati
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.guaName}>{guaName}</Text>
         <Text style={styles.hexagram}>{hexagram}</Text>
@@ -147,7 +147,7 @@ const LiuYaoDetailScreen: React.FC<LiuYaoDetailScreenProps> = ({ route, navigati
       </TouchableOpacity>
 
       <View style={styles.bottomPadding} />
-    </ScrollView>
+    </View>
   );
 };
 

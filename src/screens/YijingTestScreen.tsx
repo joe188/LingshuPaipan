@@ -73,7 +73,7 @@ export default function YijingTestScreen() {
       {loading ? (
         <ActivityIndicator size="large" style={{ marginVertical: 20 }} />
       ) : (
-        <ScrollView style={styles.list}>
+        <View style={styles.list}>
           {results.map((r, i) => (
             <View key={i} style={styles.item}>
               <Text style={styles.header}>
@@ -87,7 +87,7 @@ export default function YijingTestScreen() {
           {results.length === 0 && !loading && (
             <Text style={{ textAlign: 'center', marginTop: 20 }}>暂无结果</Text>
           )}
-        </ScrollView>
+        </View>
       )}
     </View>
   );

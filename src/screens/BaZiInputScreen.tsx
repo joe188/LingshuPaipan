@@ -158,6 +158,10 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     try {
       const result: BaZiResult = calculateBaZi(year, month, day, hour);
       
+      // 调试日志
+      console.log('🔍 calculateBaZi result:', JSON.stringify(result, null, 2));
+      console.log('🔍 result.ganZhi:', JSON.stringify(result.ganZhi, null, 2));
+      
       navigation.navigate('Result', {
         type: 'bazi',
         result: {
@@ -170,6 +174,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         },
       });
     } catch (error: any) {
+      console.error('❌ calculateBaZi error:', error);
       Alert.alert('❌ 错误', `排盘失败：${error.message}`);
     } finally {
       setLoading(false);
@@ -235,8 +240,8 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         </View>
       </View>
 
-      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <Animated.View style={[{ opacity: fadeAnim }]}>
           {/* 日期选择卡片 */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>📅 出生时间</Text>
@@ -360,8 +365,8 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
               <Text style={styles.divinationButtonText}>🔮 开始排盘</Text>
             )}
           </TouchableOpacity>
-        </ScrollView>
-      </Animated.View>
+        </Animated.View>
+      </ScrollView>
 
       {/* 选择器 */}
       {renderPicker(YEAR_RANGE, year, setYear, showYearPicker, () => setShowYearPicker(false))}

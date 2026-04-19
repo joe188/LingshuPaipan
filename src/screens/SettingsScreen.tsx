@@ -16,6 +16,7 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../styles/theme';
 
 const { colors, fonts, spacing, radii } = theme;
@@ -187,7 +188,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         <Text style={styles.headerSubtitle}>AI 配置 · 关于</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
         {/* AI 配置卡片 */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🤖 AI 配置</Text>
@@ -305,7 +306,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         </View>
 
         <View style={styles.bottomPadding} />
-      </ScrollView>
+      </View>
 
       {/* 模型选择器 */}
       <Modal

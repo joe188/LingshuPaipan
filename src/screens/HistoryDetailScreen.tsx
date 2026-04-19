@@ -148,7 +148,7 @@ export const HistoryDetailScreen: React.FC<HistoryDetailScreenProps> = ({route, 
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <View style={styles.scrollView}>
         {/* 头部 */}
         <View style={[styles.header, { paddingTop: spacing.xl }]}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -214,15 +214,15 @@ export const HistoryDetailScreen: React.FC<HistoryDetailScreenProps> = ({route, 
                 <Text style={{ fontFamily: fonts.kaiTi, fontSize: fonts.sizes.xl, color: colors.inkBlack }}>《卜筮正宗》原文</Text>
                 <View style={{ width: 30 }} />
               </View>
-              <ScrollView style={{ flex: 1, padding: spacing.lg }}>
+              <View style={{ flex: 1, padding: spacing.lg }}>
                 <Text style={{ fontFamily: fonts.sourceHan, fontSize: fonts.sizes.md, lineHeight: 24, color: colors.inkBlack }}>{BOSHI_ZHENGZONG}</Text>
-              </ScrollView>
+              </View>
             </View>
           </Modal>
         )}
 
         <View style={styles.spacer} />
-      </ScrollView>
+      </View>
 
       {/* 删除按钮 */}
       <View style={styles.footer}>
