@@ -8,6 +8,19 @@ export const colors = {
   riceWhite: '#F5F0E6',      // 米白 - 背景色
   gold: '#D4A76A',           // 金色 - 高级功能、VIP 元素
   
+  // 别名（兼容旧代码）
+  primary: '#C43C3C',        // 朱砂红
+  secondary: '#D4A76A',      // 金色
+  accent: '#4CAF50',         // 木绿
+  background: '#F5F0E6',     // 米白背景
+  card: '#FFFFFF',           // 白色卡片
+  text: '#1A1A1A',           // 墨黑文字
+  textSecondary: '#757575',  // 灰色文字
+  textLight: '#FFFFFF',      // 白色文字
+  border: '#E0E0E0',         // 边框
+  error: '#F44336',          // 错误红
+  success: '#4CAF50',        // 成功绿
+  
   // 五行色
   wood: '#4CAF50',           // 木 - 绿
   fire: '#F44336',           // 火 - 红

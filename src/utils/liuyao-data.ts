@@ -199,3 +199,17 @@ export const GUA64_NAME: string[] = [
   '泽火革', '火风鼎', '震为雷', '艮为山', '风山渐', '雷泽归妹', '雷火丰', '火山旅',
   '巽为风', '兑为泽', '风水涣', '水泽节', '风泽中孚', '雷山小过', '水火既济', '火水未济',
 ];
+
+/**
+ * 获取卦象含义
+ */
+export const getHexagramMeaning = (guaName: string): { summary: string; image: string } | null => {
+  const index = GUA64_NAME.indexOf(guaName);
+  if (index === -1 || !hexagramData[index]) return null;
+  
+  const gua = hexagramData[index];
+  return {
+    summary: gua.judgement,
+    image: gua.image,
+  };
+};

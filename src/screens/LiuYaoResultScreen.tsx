@@ -1,6 +1,6 @@
 /**
  * LiuYaoResultScreen - 六爻排盘结果页
- * 功能：显示卦象、爻辞、本地/AI 解析、历史记录更新
+ * 功能：显示卦象、爻辞、本地/AI 解析、历史记录保存
  */
 
 import React, { useState } from 'react';
@@ -15,8 +15,8 @@ import {
 import { GuochaoButton } from '../components/GuochaoButton';
 import { GuochaoCard } from '../components/GuochaoCard';
 import theme from '../styles/theme';
-import { liuyaoInterpret } from '../utils/liuyao-interpret';
-import { updateRecord } from '../database/queries/history';
+import { generateFullAnalysis, LiuYaoAnalysis } from '../utils/liuyao-interpret';
+import { insertRecord } from '../database/queries/history';
 
 const { colors, fonts, spacing, radii } = theme;
 
@@ -24,17 +24,49 @@ const { colors, fonts, spacing, radii } = theme;
 const YAO_POSITIONS = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
 
 interface LiuYaoResult {
-  hexagram: string;
-  hexagramName: string;
-  lines: string[];
+  lines: string; // "101010"
+  guaName: string;
   movingLines: number[];
-  guaNumber: number;
+  coinResults?: number[]; // [6,7,8,9,7,8]
+  transformedGuaName?: string;
+  localAnalysis?: string;
 }
 
 export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
-  const { result, recordId } = route.params || {};
+  const { result } = route.params || {};
   const [loading, setLoading] = useState(false);
-  const [interpretation, setInterpretation] = useState<string>('');
+  const [analysis, setAnalysis] = useState<LiuYaoAnalysis | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  /**
+   * 渲染卦象线条
+   */
+  const renderGuaLines = (linesStr: string, movingLines: number[]) => {
+    const lines = linesStr.split('').map(c => parseInt(c));
+    
+    // 从上往下显示（上爻在最上面）
+    return Array(6).fill(0).map((_, index) => {
+      const i = 5 - index;
+      const isYang = lines[i] === 1;
+      const isMoving = movingLines.includes(i);
+      
+      return (
+        <View key={i} style={styles.yaoRow}>
+          <Text style={styles.yaoPosition}>{YAO_POSITIONS[i]}</Text>
+          {isYang ? (
+            <View style={[styles.yangLine, isMoving && styles.movingLine]} />
+          ) : (
+            <View style={styles.yinRow}>
+              <View style={styles.yinSegment} />
+              <View style={styles.yinGap} />
+              <View style={styles.yinSegment} />
+            </View>
+          )}
+          {isMoving && <Text style={styles.movingDot}>●</Text>}
+        </View>
+      );
+    });
+  };
 
   /**
    * 本地解析
@@ -47,37 +79,22 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
 
     try {
       setLoading(true);
+      const lines = result.lines.split('').map(c => parseInt(c));
       
-      // 使用本地解析
-      const yaoList = result.lines.map((line: string) => line === '阳爻' ? 1 : 0);
-      const interpretResult = liuyaoInterpret(yaoList);
+      const fullAnalysis = generateFullAnalysis(
+        lines,
+        result.movingLines,
+        result.coinResults
+      );
       
-      let text = `【卦名】${result.hexagramName}\\n\\n`;
-      text += `【卦象】\\n${result.hexagram}\\n\\n`;
+      setAnalysis(fullAnalysis);
+      setShowAnalysis(true);
       
-      if (result.movingLines.length > 0) {
-        text += `【动爻】\\n`;
-        result.movingLines.forEach((index: number) => {
-          text += `${YAO_POSITIONS[index]}：${yaoList[index] === 1 ? '阳爻发动' : '阴爻发动'}\\n`;
-        });
-        text += '\\n';
-      }
-      
-      text += `【断语】\\n${interpretResult.duanyan}\\n\\n`;
-      text += `【建议】\\n${interpretResult.summary}`;
-      
-      setInterpretation(text);
-      
-      // 更新历史记录
-      if (recordId) {
-        await updateRecord(recordId, {
-          aiInterpretation: text,
-        });
-      }
-      
-      Alert.alert('✅ 解析完成', text);
+      // 保存到历史记录
+      await saveToHistory(fullAnalysis);
     } catch (error) {
-      Alert.alert('❌ 错误', '本地解析失败：' + (error as Error).message);
+      console.error('本地解析失败:', error);
+      Alert.alert('❌ 错误', '解析失败，请重试');
     } finally {
       setLoading(false);
     }
@@ -86,39 +103,55 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
   /**
    * AI 解析
    */
-  const handleAiAnalysis = async () => {
-    if (!result) {
-      Alert.alert('⚠️ 提示', '卦象数据缺失');
-      return;
-    }
+  const handleAIAnalysis = async () => {
+    navigation.navigate('LiuYaoDetail', { result, type: 'ai' });
+  };
 
+  /**
+   * 保存历史记录
+   */
+  const saveToHistory = async (fullAnalysis: LiuYaoAnalysis) => {
     try {
-      setLoading(true);
+      const record: any = {
+        baziType: 'liuyao',
+        solarDate: new Date().toISOString(),
+        lunarDate: '',
+        timePeriod: '',
+        location: '',
+        aiInterpretation: formatAnalysis(fullAnalysis),
+        isFavorite: false,
+        hexagram: fullAnalysis.guaName,
+        moving_lines: result.movingLines.join(','),
+      };
       
-      const aiText = `AI 解析中...（需要配置 AI API Key）\\n\\n卦名：${result.hexagramName}\\n动爻：${result.movingLines.length > 0 ? result.movingLines.map((i: number) => YAO_POSITIONS[i]).join('、') : '无'}`;
-      
-      setInterpretation(aiText);
-      
-      // 更新历史记录
-      if (recordId) {
-        await updateRecord(recordId, {
-          aiInterpretation: aiText,
-        });
-      }
-      
-      Alert.alert('ℹ️ 提示', 'AI 解析功能需要配置 API Key。\\n\\n请在设置中配置：\\n- OpenAI\\n- 文心一言\\n- 通义千问\\n- 讯飞星火');
+      await insertRecord(record as any);
     } catch (error) {
-      Alert.alert('❌ 错误', 'AI 解析失败：' + (error as Error).message);
-    } finally {
-      setLoading(false);
+      console.error('保存历史记录失败:', error);
     }
+  };
+
+  /**
+   * 格式化解析结果
+   */
+  const formatAnalysis = (fullAnalysis: LiuYaoAnalysis): string => {
+    let text = `${fullAnalysis.summary}\n\n`;
+    text += `${fullAnalysis.analysis.method}\n`;
+    text += `${fullAnalysis.analysis.sixRelations}\n`;
+    text += `${fullAnalysis.analysis.fiveElements}\n`;
+    text += `${fullAnalysis.analysis.movingLines}\n`;
+    text += `${fullAnalysis.analysis.shiYing}\n`;
+    text += `${fullAnalysis.advice}`;
+    return text;
   };
 
   if (!result) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>❌ 卦象数据缺失</Text>
-        <GuochaoButton title="返回主页" onPress={() => navigation.navigate('Home')} />
+        <GuochaoButton
+          title="返回重摇"
+          onPress={() => navigation.goBack()}
+        />
       </View>
     );
   }
@@ -126,53 +159,71 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
   return (
     <ScrollView style={styles.container}>
       {/* 卦名 */}
-      <GuochaoCard title="卦象">
-        <Text style={styles.guaName}>{result.hexagramName}</Text>
-        <Text style={styles.guaSymbol}>{result.hexagram}</Text>
+      <View style={styles.header}>
+        <Text style={styles.guaName}>{result.guaName}</Text>
+        {result.transformedGuaName && (
+          <Text style={styles.transformedGua}>
+            变：{result.transformedGuaName}
+          </Text>
+        )}
+      </View>
+
+      {/* 卦象显示 */}
+      <GuochaoCard style={styles.guaCard}>
+        <Text style={styles.cardTitle}>【卦象】</Text>
+        <View style={styles.guaLines}>
+          {renderGuaLines(result.lines, result.movingLines)}
+        </View>
       </GuochaoCard>
 
-      {/* 爻象 */}
-      <GuochaoCard title="爻象">
-        {result.lines.map((line: string, index: number) => {
-          const isMoving = result.movingLines.includes(index);
-          return (
-            <View 
-              key={index} 
-              style={[
-                styles.yaoRow,
-                isMoving && styles.movingYaoRow,
-              ]}
-            >
-              <Text style={styles.yaoPosition}>{YAO_POSITIONS[5 - index]}</Text>
-              <Text style={styles.yaoLine}>{line}</Text>
-              {isMoving && (
-                <Text style={styles.movingLabel}>⚪ 动爻</Text>
-              )}
-            </View>
-          );
-        })}
-      </GuochaoCard>
+      {/* 动爻信息 */}
+      {result.movingLines.length > 0 && (
+        <GuochaoCard style={styles.movingCard}>
+          <Text style={styles.cardTitle}>【动爻】</Text>
+          {result.movingLines.map((index) => (
+            <Text key={index} style={styles.movingText}>
+              • {YAO_POSITIONS[index]} 动
+            </Text>
+          ))}
+        </GuochaoCard>
+      )}
 
-      {/* 解析按钮 */}
+      {/* 操作按钮 */}
       <View style={styles.buttonContainer}>
-        <GuochaoButton title="🔮 本地解析" onPress={handleLocalAnalysis} disabled={loading} />
-        <GuochaoButton title="🤖 AI 解析" onPress={handleAiAnalysis} disabled={loading} />
+        <GuochaoButton
+          title={analysis ? '重新解析' : '本地解析'}
+          onPress={handleLocalAnalysis}
+          loading={loading}
+          style={styles.button}
+        />
+        
+        {analysis && (
+          <GuochaoButton
+            title="查看详细"
+            onPress={() => setShowAnalysis(!showAnalysis)}
+            variant="secondary"
+            style={styles.button}
+          />
+        )}
+        
+        <GuochaoButton
+          title="AI 详解"
+          onPress={handleAIAnalysis}
+          variant="secondary"
+          style={styles.button}
+        />
       </View>
 
       {/* 解析结果 */}
-      {interpretation ? (
-        <GuochaoCard title="解析结果">
-          <Text style={styles.interpretationText}>{interpretation}</Text>
+      {showAnalysis && analysis && (
+        <GuochaoCard style={styles.analysisCard}>
+          <Text style={styles.cardTitle}>【解析结果】</Text>
+          <Text style={styles.analysisText}>{formatAnalysis(analysis)}</Text>
         </GuochaoCard>
-      ) : null}
-
-      {/* 加载遮罩 */}
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#8B4513" />
-          <Text style={styles.loadingText}>正在解析...</Text>
-        </View>
       )}
+
+      {/* 底部留白 */}
+      <View style={styles.footer} />
     </ScrollView>
   );
 };
@@ -180,88 +231,112 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0E6',
-    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F0E6',
-    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 18,
-    color: '#DC3545',
+    color: colors.error,
     marginBottom: spacing.lg,
+  },
+  header: {
+    backgroundColor: colors.primary,
+    padding: spacing.xl,
+    alignItems: 'center',
   },
   guaName: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#1A1A1A',
-    textAlign: 'center',
-    marginBottom: spacing.lg,
+    color: colors.textLight,
   },
-  guaSymbol: {
-    fontSize: 48,
-    textAlign: 'center',
-    lineHeight: 60,
-    color: '#8B4513',
+  transformedGua: {
+    fontSize: 16,
+    color: colors.textLight,
+    marginTop: spacing.sm,
+    opacity: 0.9,
+  },
+  guaCard: {
+    margin: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  guaLines: {
+    gap: spacing.sm,
   },
   yaoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8DCC4',
-  },
-  movingYaoRow: {
-    backgroundColor: '#FFF0F0',
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.sm,
+    height: 40,
   },
   yaoPosition: {
-    width: 60,
-    fontSize: 16,
-    color: '#1A1A1A',
-    fontWeight: '500',
+    fontSize: 14,
+    color: colors.textSecondary,
+    width: 50,
   },
-  yaoLine: {
+  yangLine: {
     flex: 1,
-    fontSize: 18,
-    color: '#1A1A1A',
-    textAlign: 'center',
+    height: 8,
+    backgroundColor: colors.primary,
+    borderRadius: 4,
   },
-  movingLabel: {
-    fontSize: 12,
-    color: '#DC3545',
-    fontWeight: '600',
+  movingLine: {
+    backgroundColor: colors.accent,
+  },
+  yinRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  yinSegment: {
+    width: '40%',
+    height: 8,
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  yinGap: {
+    width: '20%',
+  },
+  movingDot: {
+    fontSize: 20,
+    color: colors.accent,
+    marginLeft: spacing.sm,
+    width: 30,
+  },
+  movingCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  movingText: {
+    fontSize: 14,
+    color: colors.accent,
+    marginLeft: spacing.md,
   },
   buttonContainer: {
-    marginTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  interpretationText: {
-    fontSize: 15,
-    color: '#1A1A1A',
+  button: {
+    marginBottom: spacing.xs,
+  },
+  analysisCard: {
+    margin: spacing.lg,
+  },
+  analysisText: {
+    fontSize: 14,
+    color: colors.text,
     lineHeight: 24,
   },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: spacing.md,
-    color: '#FFF8F0',
-    fontSize: 16,
+  footer: {
+    height: spacing.xl,
   },
 });
-
-export default LiuYaoResultScreen;

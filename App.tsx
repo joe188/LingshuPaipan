@@ -13,11 +13,11 @@ import {
   autoCheckUpdate 
 } from './src/utils/UpdateContext';
 import HomeScreen from './src/screens/HomeScreen';
-import LiuYaoScreen from './src/screens/LiuYaoScreen';
-import LiuYaoResultScreen from './src/screens/LiuYaoResultScreen';
+import { LiuYaoScreen } from './src/screens/LiuYaoScreen';
+import { LiuYaoResultScreen } from './src/screens/LiuYaoResultScreen';
 import LiuYaoDetailScreen from './src/screens/LiuYaoDetailScreen';
-import BaZiInputScreen from './src/screens/BaZiInputScreen';
-import QiMenScreen from './src/screens/QiMenScreen';
+import { BaZiInputScreen } from './src/screens/BaZiInputScreen';
+import { QiMenScreen } from './src/screens/QiMenScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { HistoryScreen } from './src/screens';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
