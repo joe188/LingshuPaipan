@@ -19,9 +19,11 @@ import LiuYaoDetailScreen from './src/screens/LiuYaoDetailScreen';
 import { BaZiInputScreen } from './src/screens/BaZiInputScreen';
 import { QiMenScreen } from './src/screens/QiMenScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { AiConfigScreen } from './src/screens/AiConfigScreen';
 import { HistoryScreen } from './src/screens';
 import HistoryDetailScreen from './src/screens/HistoryDetailScreen';
 import ResultScreen from './src/screens/ResultScreen';
+import AIResultScreen from './src/screens/AIResultScreen';
 import YijingTestScreen from './src/screens/YijingTestScreen';
 import { KnowledgeScreen } from './src/screens/KnowledgeScreen';
 import { ManualScreen } from './src/screens/ManualScreen';
@@ -48,11 +50,13 @@ function AppContent() {
           <Stack.Screen name="BaZiInput" component={BaZiInputScreen as any} options={{ title: '八字排盘' }} />
           <Stack.Screen name="QiMen" component={QiMenScreen as any} options={{ title: '奇门遁甲' }} />
           <Stack.Screen name="Settings" component={SettingsScreen as any} options={{ title: '全局设置' }} />
+          <Stack.Screen name="AiConfig" component={AiConfigScreen as any} options={{ title: 'AI 配置' }} />
           <Stack.Screen name="Knowledge" component={KnowledgeScreen as any} options={{ title: '易学知识库' }} />
           <Stack.Screen name="Manual" component={ManualScreen as any} options={{ title: '使用手册' }} />
           <Stack.Screen name="History" component={HistoryScreen as any} options={{ title: '历史记录' }} />
           <Stack.Screen name="HistoryDetail" component={HistoryDetailScreen as any} options={{ title: '详情' }} />
           <Stack.Screen name="Result" component={ResultScreen as any} options={{ title: '排盘结果' }} />
+          <Stack.Screen name="AIResult" component={AIResultScreen as any} options={{ title: 'AI 解卦结果' }} />
           <Stack.Screen name="YijingTest" component={YijingTestScreen as any} options={{ title: '易经测试' }} />
         </Stack.Navigator>
       </View>

@@ -3,7 +3,7 @@
  * AppKey: zTmIBVr3nDOIxVx3QXpk421y
  */
 
-import { Platform, Alert, Linking } from 'react-native';
+import { Platform, Alert } from 'react-native';
 
 const appKey = Platform.OS === 'ios' 
   ? 'YOUR_IOS_APP_KEY' 
@@ -17,10 +17,10 @@ const APP_NAME = '灵枢排盘';
  */
 export async function checkForUpdate(showResult = false) {
   try {
-    const Update = require('react-native-update').default;
-    const result = await Update.checkForUpdate(appKey);
+    const Pushy = require('react-native-update').default;
+    const result = await Pushy.checkUpdate(appKey);
     
-    if (result.update) {
+    if (result && result.update) {
       const { update } = result;
       
       if (showResult) {
@@ -58,15 +58,17 @@ export async function checkForUpdate(showResult = false) {
  */
 export async function downloadAndInstallUpdate(update) {
   try {
-    const Update = require('react-native-update').default;
+    const Pushy = require('react-native-update').default;
     
     Alert.alert('更新中', '正在下载更新包，请稍候...');
     
-    await Update.downloadAndInstallUpdate(appKey, update, {
+    await Pushy.downloadUpdate(appKey, update, {
       onProgress: (progress) => {
         console.log('下载进度:', progress);
       },
     });
+    
+    await Pushy.switchVersion(update.hash);
     
     Alert.alert('更新成功', '应用已更新到最新版本');
   } catch (error) {
@@ -80,8 +82,8 @@ export async function downloadAndInstallUpdate(update) {
  */
 export async function downloadUpdateForNextLaunch(update) {
   try {
-    const Update = require('react-native-update').default;
-    await Update.downloadUpdateForNextLaunch(appKey, update);
+    const Pushy = require('react-native-update').default;
+    await Pushy.downloadUpdate(appKey, update);
     Alert.alert('提示', '更新包已下载，下次启动时生效');
   } catch (error) {
     console.log('下载更新失败:', error);
@@ -93,8 +95,8 @@ export async function downloadUpdateForNextLaunch(update) {
  */
 export async function checkFirstTime() {
   try {
-    const Update = require('react-native-update').default;
-    const isFirstTime = await Update.isFirstTime();
+    const Pushy = require('react-native-update');
+    const isFirstTime = Pushy.isFirstTime;
     
     if (isFirstTime) {
       console.log('热更新后第一次启动');
@@ -114,8 +116,8 @@ export async function checkFirstTime() {
  */
 export async function checkRollback() {
   try {
-    const Update = require('react-native-update').default;
-    const isRolledBack = await Update.isRolledBack();
+    const Pushy = require('react-native-update');
+    const isRolledBack = Pushy.isRolledBack;
     
     if (isRolledBack) {
       console.log('应用已回滚');

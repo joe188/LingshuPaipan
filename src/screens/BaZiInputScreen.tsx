@@ -3,7 +3,7 @@
  * 功能：选择出生年月日时、真太阳时校正、手机定位、本地/AI 解析
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
+  TextInput,
 } from 'react-native';
 import theme from '../styles/theme';
 import { calculateBaZi, adjustSolarTime, BaZiResult } from '../utils/bazi-calculator';
@@ -44,6 +45,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const [loading, setLoading] = useState(false);
   const [solarTimeInfo, setSolarTimeInfo] = useState('');
   const [isLunar, setIsLunar] = useState(false); // 是否农历
+  const [citySearchText, setCitySearchText] = useState(''); // 城市搜索关键字
   
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -51,7 +53,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const [showHourPicker, setShowHourPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-  const fadeAnim = new Animated.Value(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   /**
    * 获取农历月份名称
@@ -89,11 +91,22 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     try {
       const geolocation = require('react-native-geolocation-service');
       
-      await geolocation.requestAuthorization('always');
+      // 检查是否有定位权限
+      let hasPermission = false;
+      try {
+        const result = await geolocation.requestAuthorization('whenInUse');
+        hasPermission = result === 'granted';
+      } catch (e) {
+        console.log('📍 requestAuthorization not available, trying to get position directly');
+        hasPermission = true; // 尝试直接获取位置
+      }
+      
+      console.log('📍 定位权限:', hasPermission);
       
       geolocation.getCurrentPosition(
         (position: any) => {
           const { latitude, longitude } = position.coords;
+          console.log('📍 定位成功:', { latitude, longitude });
           setLongitude(longitude);
           
           // 查找最近城市
@@ -102,17 +115,18 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           );
           
           if (nearest) {
-            setLocationName(nearest.city);
+            setLocationName(`${nearest.province} ${nearest.city} ${nearest.district}`);
             setLongitude(nearest.longitude);
-            Alert.alert('✅ 定位成功', `当前位置：${nearest.city}\n经度：${nearest.longitude}°`);
+            Alert.alert('✅ 定位成功', `当前位置：${nearest.province} ${nearest.city} ${nearest.district}\n经度：${nearest.longitude.toFixed(2)}° 纬度：${nearest.latitude.toFixed(2)}°`);
           } else {
             setLocationName(`自定义地点 (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°)`);
-            Alert.alert('✅ 定位成功', `获取到坐标，但未找到对应城市`);
+            Alert.alert('✅ 定位成功', `经度：${longitude.toFixed(2)}° 纬度：${latitude.toFixed(2)}°\n未找到对应城市，请手动选择`);
           }
           setLoading(false);
         },
         (error: any) => {
-          Alert.alert('❌ 定位失败', '无法获取当前位置，请手动选择城市');
+          console.error('📍 定位失败:', error);
+          Alert.alert('❌ 定位失败', `错误：${error.message}\n请手动选择城市`);
           setLoading(false);
         },
         {
@@ -122,7 +136,8 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         }
       );
     } catch (error: any) {
-      Alert.alert('❌ 错误', '定位功能不可用');
+      console.error('📍 定位错误:', error);
+      Alert.alert('❌ 错误', `定位功能不可用：${error.message}`);
       setLoading(false);
     }
   };
@@ -181,7 +196,57 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     }
   };
 
-  // 渲染选择器
+  // 渲染时辰选择器（显示时间范围）
+  const renderHourPicker = () => (
+    <Modal visible={showHourPicker} transparent animationType="slide" onRequestClose={() => setShowHourPicker(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowHourPicker(false)}>
+              <Text style={styles.modalButton}>取消</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>选择时辰</Text>
+            <TouchableOpacity onPress={() => setShowHourPicker(false)}>
+              <Text style={[styles.modalButton, styles.modalConfirm]}>确定</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={HOUR_NAMES.map((name, index) => ({ name, time: HOUR_TIME[index], index }))}
+            keyExtractor={(item) => item.index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.pickerItem,
+                  item.index === hour && styles.pickerItemSelected,
+                ]}
+                onPress={() => {
+                  setHour(item.index);
+                  setShowHourPicker(false);
+                }}
+              >
+                <View style={styles.hourItemContent}>
+                  <Text style={[
+                    styles.pickerItemText,
+                    item.index === hour && styles.pickerItemTextSelected,
+                  ]}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.hourTimeText}>
+                    {item.time}时
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            getItemLayout={(data, index) => ({
+              length: 60,
+              offset: 60 * index,
+              index,
+            })}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
   const renderPicker = (items: any[], value: any, onChange: (item: any) => void, visible: boolean, onClose: () => void) => (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
@@ -219,12 +284,102 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
               offset: 50 * index,
               index,
             })}
-            initialScrollIndex={items.indexOf(value)}
           />
         </View>
       </View>
     </Modal>
   );
+
+  // 渲染城市选择器（带搜索功能）
+  const renderCityPicker = () => {
+    const filteredCities = CITY_COORDINATES
+      .map((c: any) => `${c.province} ${c.city} ${c.district}`)
+      .filter((name: string) => 
+        citySearchText === '' || name.toLowerCase().includes(citySearchText.toLowerCase())
+      );
+    
+    return (
+      <Modal visible={showLocationPicker} transparent animationType="slide" onRequestClose={() => setShowLocationPicker(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => {
+                setShowLocationPicker(false);
+                setCitySearchText('');
+              }}>
+                <Text style={styles.modalButton}>取消</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>选择城市</Text>
+              <TouchableOpacity onPress={() => {
+                setShowLocationPicker(false);
+                setCitySearchText('');
+              }}>
+                <Text style={[styles.modalButton, styles.modalConfirm]}>确定</Text>
+              </TouchableOpacity>
+            </View>
+            {/* 搜索输入框 */}
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="输入城市名称搜索..."
+                value={citySearchText}
+                onChangeText={setCitySearchText}
+                clearButtonMode="while-editing"
+              />
+            </View>
+            {/* 城市列表 */}
+            <FlatList
+              data={filteredCities}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => {
+                const coord = CITY_COORDINATES.find((c: any) => 
+                  `${c.province} ${c.city} ${c.district}` === item
+                );
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.pickerItem,
+                      item === locationName && styles.pickerItemSelected,
+                    ]}
+                    onPress={() => {
+                      setLocationName(item);
+                      if (coord) {
+                        setLongitude(coord.longitude);
+                      }
+                      setShowLocationPicker(false);
+                      setCitySearchText('');
+                    }}
+                  >
+                    <Text style={[
+                      styles.pickerItemText,
+                      item === locationName && styles.pickerItemTextSelected,
+                    ]}>
+                      {item}
+                    </Text>
+                    {coord && (
+                      <Text style={styles.pickerItemSubtext}>
+                        经度: {coord.longitude.toFixed(2)}° 纬度: {coord.latitude.toFixed(2)}°
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+              getItemLayout={(data, index) => ({
+                length: 60,
+                offset: 60 * index,
+                index,
+              })}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>未找到匹配的城市</Text>
+                </View>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -290,7 +445,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             {isLunar && (
               <View style={styles.lunarInfo}>
                 <Text style={styles.lunarText}>
-                  农历：{year}年 {getLunarMonthName(month)}月 {getLunarDayName(day)}
+                  农历：{year}年 {getLunarMonthName(Math.max(1, Math.min(12, month)))}月 {getLunarDayName(Math.max(1, Math.min(31, day)))}
                 </Text>
               </View>
             )}
@@ -372,7 +527,26 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
       {renderPicker(YEAR_RANGE, year, setYear, showYearPicker, () => setShowYearPicker(false))}
       {renderPicker(MONTH_RANGE, month, setMonth, showMonthPicker, () => setShowMonthPicker(false))}
       {renderPicker(DAY_RANGE, day, setDay, showDayPicker, () => setShowDayPicker(false))}
-      {renderPicker(HOUR_NAMES.map((_, i) => i), hour, setHour, showHourPicker, () => setShowHourPicker(false))}
+      {renderHourPicker()}
+      {renderPicker(
+        CITY_COORDINATES.map((c: any) => `${c.province} ${c.city} ${c.district}`),
+        locationName,
+        (fullName: string) => {
+          setLocationName(fullName);
+          // 从完整名称中提取城市名称，查找坐标
+          const parts = fullName.split(' ');
+          const district = parts[2] || parts[1] || parts[0];
+          const coord = CITY_COORDINATES.find((c: any) => c.district === district || c.city === district);
+          if (coord) {
+            setLongitude(coord.longitude);
+          }
+          setShowLocationPicker(false);
+        },
+        showLocationPicker,
+        () => setShowLocationPicker(false)
+      )}
+      {/* 城市选择器（带搜索功能） */}
+      {renderCityPicker()}
     </View>
   );
 };
@@ -675,6 +849,43 @@ const styles = StyleSheet.create({
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     textAlign: 'center',
+  },
+  searchContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+  },
+  searchInput: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: colors.gray[300],
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    fontSize: fonts.sizes.md,
+    backgroundColor: colors.white,
+  },
+  pickerItemSubtext: {
+    fontSize: fonts.sizes.xs,
+    color: colors.gray[500],
+    marginTop: 2,
+  },
+  emptyContainer: {
+    padding: spacing.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: fonts.sizes.md,
+    color: colors.gray[400],
+  },
+  hourItemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  hourTimeText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.gray[500],
   },
 });
 

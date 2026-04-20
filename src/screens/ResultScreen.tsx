@@ -74,6 +74,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const route = useRoute();
   const navigation = useNavigation();
   
+  // AI 解卦结果状态
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  
   // 从 route.params 获取数据
   const routeParams = (route.params as any);
   
@@ -183,6 +187,21 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
   // 使用上方已定义的 ganZhi（data?.ganZhi），如果 data 存在
 
+  // AI 解卦函数
+  const handleAIInterpret = async () => {
+    // 立即导航到 AIResultScreen，在新页面中调用 AI 服务
+    navigation.navigate('AIResult', {
+      baziInfo: {
+        ganZhi,
+        solarDate: data?.solarDate || '',
+        lunarDate: data?.lunarDate || '',
+        hourLabel: baziData?.hourLabel || '',
+        location: baziData?.location || '',
+      },
+      aiResult: null, // 初始为 null，在 AIResultScreen 中调用 AI 服务
+    });
+  };
+
   // 如果数据不存在，显示空状态
   if (!hasData || !ganZhi) {
     return (
@@ -210,7 +229,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* 标题栏 */}
         <View style={[styles.header, { paddingTop: spacing.xl }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -390,7 +409,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
             </View>
           ) : (
             <View style={styles.shishenContent}>
-              {data.shishen.map((item, index) => (
+              {(data.shishen || []).map((item, index) => (
                 <View key={index} style={styles.shishenItem}>
                   <Text style={styles.shishenLabel}>{['年', '月', '日', '时'][index]}</Text>
                   <Text style={styles.shishenValue}>{item}</Text>
@@ -431,17 +450,27 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
               </View>
             </View>
             <GuochaoButton
-              title="立即解读"
-              variant="primary"
+              title={aiLoading ? "解卦中..." : "立即解读"}
+              variant="outline"
               size="medium"
-              onPress={onAIInterpret}
+              onPress={handleAIInterpret}
               style={styles.aiButton}
+              disabled={aiLoading}
+              loading={aiLoading}
             />
+            
+            {/* AI 解卦结果 */}
+            {aiResult && (
+              <View style={styles.aiResultContainer}>
+                <Text style={styles.aiResultTitle}>🤖 AI 解卦结果</Text>
+                <Text style={styles.aiResultText}>{aiResult}</Text>
+              </View>
+            )}
           </GuochaoCard>
         </View>
 
         <View style={styles.spacer} />
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -713,6 +742,27 @@ const styles = StyleSheet.create({
 
   aiButton: {
     backgroundColor: colors.white,
+  },
+
+  aiResultContainer: {
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+  },
+
+  aiResultTitle: {
+    fontFamily: fonts.kaiTi,
+    fontSize: fonts.sizes.lg,
+    color: colors.cinnabarRed,
+    marginBottom: spacing.md,
+  },
+
+  aiResultText: {
+    fontFamily: fonts.sourceHan,
+    fontSize: fonts.sizes.md,
+    color: colors.inkBlack,
+    lineHeight: fonts.sizes.md * 1.6,
   },
 
   saveStatus: {

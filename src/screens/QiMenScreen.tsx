@@ -152,47 +152,26 @@ export const QiMenScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       return;
     }
 
-    try {
-      setLoading(true);
-      
-      const aiText = `AI 解析中...（需要配置 AI API Key）\n\n` +
-        `节气：${jieqi}\n` +
-        `时间：${year}年${month}月${day}日 ${SHI_CHEN[hourIndex]}\n` +
-        `日干支：${result.dayGanZhi}\n` +
-        `时干支：${result.hourGanZhi}\n` +
-        `值符：${result.zhiFu}\n` +
-        `值使：${result.zhiShi}\n\n` +
-        `请在设置中配置 AI API Key 以获取详细解析。`;
-      
-      setInterpretation(aiText);
-      
-      // 保存或更新历史记录
-      if (recordId) {
-        await updateRecord(recordId, {
-          aiInterpretation: aiText,
-        });
-      } else {
-        const record: Partial<DivinationRecord> = {
-          createdAt: Date.now(),
-          baziType: 'qimen',
-          solarDate: new Date(year, month - 1, day).toISOString(),
-          lunarDate: '',
-          timePeriod: SHI_CHEN[hourIndex],
-          location: '',
-          aiInterpretation: aiText,
-          isFavorite: 0,
-        };
-        
-        const newRecordId = await insertRecord(record as DivinationRecord);
-        setRecordId(newRecordId);
-      }
-      
-      Alert.alert('ℹ️ 提示', 'AI 解析功能需要配置 API Key。\n\n请在设置中配置：\n- OpenAI\n- 文心一言\n- 通义千问\n- 讯飞星火');
-    } catch (error) {
-      Alert.alert('❌ 错误', 'AI 解析失败：' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
+    // 立即导航到 AIResultScreen
+    navigation.navigate('AIResult', {
+      baziInfo: {
+        ganZhi: {
+          year: { gan: result.dayGanZhi?.[0] || '', zhi: result.dayGanZhi?.[1] || '' },
+          month: { gan: '', zhi: '' },
+          day: { gan: '', zhi: '' },
+          hour: { gan: result.hourGanZhi?.[0] || '', zhi: result.hourGanZhi?.[1] || '' },
+        },
+        solarDate: `${year}-${month}-${day}`,
+        lunarDate: '',
+        hourLabel: SHI_CHEN[hourIndex],
+        location: '',
+        jieqi,
+        zhiFu: result.zhiFu,
+        zhiShi: result.zhiShi,
+        type: 'qimen', // 标记为奇门遁甲
+      },
+      aiResult: null, // 初始为 null，在 AIResultScreen 中调用 AI 服务
+    });
   };
 
   /**
@@ -345,8 +324,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   buttonContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginTop: spacing.lg,
     gap: spacing.md,
+    justifyContent: 'center',
   },
   interpretationText: {
     fontSize: 15,

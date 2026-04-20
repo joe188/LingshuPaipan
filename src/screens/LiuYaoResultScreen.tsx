@@ -158,7 +158,7 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* 卦名 */}
       <View style={styles.header}>
         <Text style={styles.guaName}>{result.guaName}</Text>
@@ -225,7 +225,7 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
 
       {/* 底部留白 */}
       <View style={styles.footer} />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -233,6 +233,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   errorContainer: {
     flex: 1,
@@ -323,10 +326,15 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   buttonContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
+    justifyContent: 'center',
   },
   button: {
+    flex: 1,
+    minWidth: 100,
     marginBottom: spacing.xs,
   },
   analysisCard: {

@@ -27,7 +27,7 @@ interface LiuYaoDetailScreenProps {
 }
 
 const LiuYaoDetailScreen: React.FC<LiuYaoDetailScreenProps> = ({ route, navigation }) => {
-  const { hexagram, guaName, lines, movingLines, interpretation } = route.params;
+  const { hexagram, guaName, lines = [], movingLines = [], interpretation } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [aiInterpretation, setAiInterpretation] = useState('');
 

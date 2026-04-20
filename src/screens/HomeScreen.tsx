@@ -202,29 +202,12 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* 顶部装饰 - 八卦图案 */}
+      {/* 顶部装饰 - 道法自然 + AI赋能 */}
       <View style={styles.baguaHeader}>
-        <View style={styles.baguaCircle}>
-          {BAGUA_SYMBOLS.map((symbol, index) => {
-            const angle = (index * 45 * Math.PI) / 180;
-            const x = Math.cos(angle) * 60;
-            const y = Math.sin(angle) * 60;
-            return (
-              <Text
-                key={index}
-                style={[
-                  styles.baguaSymbol,
-                  {
-                    left: x + 70,
-                    top: y + 70,
-                  }
-                ]}
-              >
-                {symbol}
-              </Text>
-            );
-          })}
-          <Text style={styles.taiji}>☯</Text>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerLeftText}>道法自然</Text>
+          <Text style={styles.headerCenterText}>☯</Text>
+          <Text style={styles.headerRightText}>AI赋能</Text>
         </View>
       </View>
 
@@ -320,25 +303,29 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  baguaCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.gold,
-    justifyContent: 'center',
+  headerContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.riceWhite,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
   },
-  baguaSymbol: {
-    position: 'absolute',
-    fontSize: 20,
-    color: colors.inkBlack,
-    fontWeight: 'bold',
+  headerLeftText: {
+    fontSize: 24,
+    fontFamily: fonts.kaiTi,
+    color: colors.gold,
+    fontWeight: fonts.weights.bold,
+    marginRight: spacing.lg,
   },
-  taiji: {
-    fontSize: 40,
-    color: colors.inkBlack,
+  headerCenterText: {
+    fontSize: 50,
+    color: colors.gold,
+  },
+  headerRightText: {
+    fontSize: 24,
+    fontFamily: fonts.kaiTi,
+    color: colors.gold,
+    fontWeight: fonts.weights.bold,
+    marginLeft: spacing.lg,
   },
   
   // 运势卡片
