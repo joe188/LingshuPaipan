@@ -104,7 +104,17 @@ export const LiuYaoResultScreen: React.FC<{ navigation: any; route: any }> = ({ 
    * AI 解析
    */
   const handleAIAnalysis = async () => {
-    navigation.navigate('LiuYaoDetail', { result, type: 'ai' });
+    // 立即导航到 AIResultScreen
+    navigation.navigate('AIResult', {
+      baziInfo: {
+        type: 'liuyao', // 标记为六爻
+        guaName: result.guaName,
+        transformedGuaName: result.transformedGuaName,
+        lines: result.lines,
+        movingLines: result.movingLines,
+      },
+      aiResult: null, // 初始为 null，在 AIResultScreen 中调用 AI 服务
+    });
   };
 
   /**

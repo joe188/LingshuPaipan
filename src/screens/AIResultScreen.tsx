@@ -3,7 +3,7 @@
  * 功能：显示 AI 解卦结果，支持保存、分享、历史记录
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -39,10 +39,21 @@ export const AIResultScreen: React.FC<AIResultScreenProps> = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   
+  // 防止重复调用
+  const hasCalledRef = useRef(false);
+  
   // 在页面加载时调用 AI 服务
   useEffect(() => {
-    if (!initialAiResult && baziInfo?.ganZhi) {
-      callAIService();
+    if (!initialAiResult && !hasCalledRef.current) {
+      // 根据类型判断是否有足够的数据
+      const hasData = baziInfo?.type === 'liuyao' 
+        ? (baziInfo?.guaName || baziInfo?.lines)
+        : (baziInfo?.ganZhi || baziInfo?.jieqi);
+      
+      if (hasData) {
+        hasCalledRef.current = true;
+        callAIService();
+      }
     }
   }, []);
   
@@ -61,6 +72,15 @@ export const AIResultScreen: React.FC<AIResultScreenProps> = () => {
         };
         
         const result = await aiService.analyzeQiMen(request);
+        setAiResult(result);
+      } else if (baziInfo?.type === 'liuyao') {
+        // 六爻
+        const request = {
+          question: `请详细解读这个六爻卦象：${baziInfo.guaName}卦，卦象为${baziInfo.lines}，动爻：${baziInfo.movingLines?.join(',') || '无'}\n\n请从以下几个方面进行分析：\n1. 卦象含义\n2. 动爻解析\n3. 吉凶判断\n4. 建议\n\n请用通俗易懂的语言进行解读。`,
+          provider: 'openai',
+        };
+        
+        const result = await aiService.analyzeLiuYao(request);
         setAiResult(result);
       } else {
         // 八字
@@ -91,20 +111,33 @@ export const AIResultScreen: React.FC<AIResultScreenProps> = () => {
     try {
       setSaving(true);
       
-      const record = {
-        baziType: 'bazi' as const,
+      // 根据 baziInfo.type 确定正确的 baziType
+      const baziType = baziInfo?.type || 'bazi';
+      
+      const record: any = {
+        baziType,
         solarDate: baziInfo?.solarDate || new Date().toISOString().split('T')[0],
         lunarDate: baziInfo?.lunarDate || '',
         timePeriod: baziInfo?.hourLabel || '',
         location: baziInfo?.location || '',
         aiInterpretation: aiResult,
         isFavorite: false,
-        yearGanzhi: baziInfo?.ganZhi?.year ? `${baziInfo.ganZhi.year.gan}${baziInfo.ganZhi.year.zhi}` : '',
-        monthGanzhi: baziInfo?.ganZhi?.month ? `${baziInfo.ganZhi.month.gan}${baziInfo.ganZhi.month.zhi}` : '',
-        dayGanzhi: baziInfo?.ganZhi?.day ? `${baziInfo.ganZhi.day.gan}${baziInfo.ganZhi.day.zhi}` : '',
-        hourGanzhi: baziInfo?.ganZhi?.hour ? `${baziInfo.ganZhi.hour.gan}${baziInfo.ganZhi.hour.zhi}` : '',
         createdAt: Date.now(),
       };
+      
+      // 根据类型添加不同的字段
+      if (baziType === 'bazi') {
+        record.yearGanzhi = baziInfo?.ganZhi?.year ? `${baziInfo.ganZhi.year.gan}${baziInfo.ganZhi.year.zhi}` : '';
+        record.monthGanzhi = baziInfo?.ganZhi?.month ? `${baziInfo.ganZhi.month.gan}${baziInfo.ganZhi.month.zhi}` : '';
+        record.dayGanzhi = baziInfo?.ganZhi?.day ? `${baziInfo.ganZhi.day.gan}${baziInfo.ganZhi.day.zhi}` : '';
+        record.hourGanzhi = baziInfo?.ganZhi?.hour ? `${baziInfo.ganZhi.hour.gan}${baziInfo.ganZhi.hour.zhi}` : '';
+      } else if (baziType === 'liuyao') {
+        record.hexagram = baziInfo?.guaName || '';
+        record.movingLines = baziInfo?.movingLines?.join(',') || '';
+      } else if (baziType === 'qimen') {
+        record.jieqi = baziInfo?.jieqi || '';
+        record.juName = baziInfo?.juName || '';
+      }
       
       await insertRecord(record);
       setSaved(true);
@@ -157,23 +190,65 @@ ${aiResult}
           <View style={styles.placeholder} />
         </View>
         
-        {/* 八字信息卡片 */}
-        <GuochaoCard title="八字信息" variant="pattern">
-          <View style={styles.baziInfo}>
-            <Text style={styles.baziText}>
-              {baziInfo?.ganZhi?.year?.gan || ''}{baziInfo?.ganZhi?.year?.zhi || ''}年 
-              {baziInfo?.ganZhi?.month?.gan || ''}{baziInfo?.ganZhi?.month?.zhi || ''}月 
-              {baziInfo?.ganZhi?.day?.gan || ''}{baziInfo?.ganZhi?.day?.zhi || ''}日 
-              {baziInfo?.ganZhi?.hour?.gan || ''}{baziInfo?.ganZhi?.hour?.zhi || ''}时
-            </Text>
-            {baziInfo?.solarDate && (
-              <Text style={styles.dateText}>公历：{baziInfo.solarDate}</Text>
-            )}
-            {baziInfo?.lunarDate && (
-              <Text style={styles.dateText}>农历：{baziInfo.lunarDate}</Text>
-            )}
-          </View>
-        </GuochaoCard>
+        {/* 信息卡片 */}
+        {baziInfo?.type === 'liuyao' ? (
+          // 六爻信息
+          <GuochaoCard title="六爻卦象" variant="pattern">
+            <View style={styles.baziInfo}>
+              <Text style={styles.baziText}>
+                {baziInfo?.guaName || ''}卦
+              </Text>
+              {baziInfo?.transformedGuaName && (
+                <Text style={styles.dateText}>变卦：{baziInfo.transformedGuaName}</Text>
+              )}
+              {baziInfo?.lines && (
+                <Text style={styles.dateText}>卦象：{baziInfo.lines}</Text>
+              )}
+              {baziInfo?.movingLines && baziInfo.movingLines.length > 0 && (
+                <Text style={styles.dateText}>动爻：{baziInfo.movingLines.join('、')}爻</Text>
+              )}
+            </View>
+          </GuochaoCard>
+        ) : baziInfo?.type === 'qimen' ? (
+          // 奇门遁甲信息
+          <GuochaoCard title="奇门遁甲局" variant="pattern">
+            <View style={styles.baziInfo}>
+              {baziInfo?.jieqi && (
+                <Text style={styles.baziText}>节气：{baziInfo.jieqi}</Text>
+              )}
+              {baziInfo?.ganZhi?.year && (
+                <Text style={styles.dateText}>日干支：{baziInfo.ganZhi.year.gan}{baziInfo.ganZhi.year.zhi}</Text>
+              )}
+              {baziInfo?.ganZhi?.hour && (
+                <Text style={styles.dateText}>时干支：{baziInfo.ganZhi.hour.gan}{baziInfo.ganZhi.hour.zhi}</Text>
+              )}
+              {baziInfo?.zhiFu && (
+                <Text style={styles.dateText}>值符：{baziInfo.zhiFu}</Text>
+              )}
+              {baziInfo?.zhiShi && (
+                <Text style={styles.dateText}>值使：{baziInfo.zhiShi}</Text>
+              )}
+            </View>
+          </GuochaoCard>
+        ) : (
+          // 八字信息
+          <GuochaoCard title="八字信息" variant="pattern">
+            <View style={styles.baziInfo}>
+              <Text style={styles.baziText}>
+                {baziInfo?.ganZhi?.year?.gan || ''}{baziInfo?.ganZhi?.year?.zhi || ''}年 
+                {baziInfo?.ganZhi?.month?.gan || ''}{baziInfo?.ganZhi?.month?.zhi || ''}月 
+                {baziInfo?.ganZhi?.day?.gan || ''}{baziInfo?.ganZhi?.day?.zhi || ''}日 
+                {baziInfo?.ganZhi?.hour?.gan || ''}{baziInfo?.ganZhi?.hour?.zhi || ''}时
+              </Text>
+              {baziInfo?.solarDate && (
+                <Text style={styles.dateText}>公历：{baziInfo.solarDate}</Text>
+              )}
+              {baziInfo?.lunarDate && (
+                <Text style={styles.dateText}>农历：{baziInfo.lunarDate}</Text>
+              )}
+            </View>
+          </GuochaoCard>
+        )}
         
         {/* AI 解卦结果 */}
         <GuochaoCard title="🤖 AI 解卦" variant="pattern" style={styles.resultCard}>
