@@ -20,7 +20,11 @@ export const Schema = {
       time_correction INTEGER,
       ai_interpretation TEXT,
       user_notes TEXT,
-      is_favorite INTEGER DEFAULT 0
+      is_favorite INTEGER DEFAULT 0,
+      hexagram TEXT,
+      moving_lines TEXT,
+      jieqi TEXT,
+      ju_name TEXT
     )
   `,
 

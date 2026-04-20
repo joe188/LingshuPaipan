@@ -21,6 +21,10 @@ const FIELD_MAP: Record<string, string> = {
   aiInterpretation: 'ai_interpretation',
   userNotes: 'user_notes',
   isFavorite: 'is_favorite',
+  hexagram: 'hexagram',
+  movingLines: 'moving_lines',
+  jieqi: 'jieqi',
+  juName: 'ju_name',
 };
 
 // 记录转数据库字段

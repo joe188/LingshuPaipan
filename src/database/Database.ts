@@ -37,12 +37,52 @@ const createTables = async (): Promise<void> => {
     db.executeSync(YijingSchema.CREATE_LIUYAO_INTERPRETATION);
     db.executeSync(Schema.CREATE_INDEXES);
     console.log('✅ Tables created');
+    
+    // 数据库迁移：添加六爻和奇门遁甲字段
+    await migrateDatabase();
   } catch (error) {
     console.error('❌ Error creating tables:', error);
     throw error;
   }
 
   await seedData();
+};
+
+// 数据库迁移
+const migrateDatabase = async (): Promise<void> => {
+  if (!db) throw new Error('Database not available');
+
+  try {
+    // 检查 hexagram 字段是否存在
+    const tableInfo = db.executeSync(`PRAGMA table_info(divination_history)`);
+    const columns = tableInfo.rows.map((row: any) => row.name);
+    
+    // 添加 hexagram 字段
+    if (!columns.includes('hexagram')) {
+      db.executeSync(`ALTER TABLE divination_history ADD COLUMN hexagram TEXT`);
+      console.log('✅ Added hexagram column');
+    }
+    
+    // 添加 moving_lines 字段
+    if (!columns.includes('moving_lines')) {
+      db.executeSync(`ALTER TABLE divination_history ADD COLUMN moving_lines TEXT`);
+      console.log('✅ Added moving_lines column');
+    }
+    
+    // 添加 jieqi 字段
+    if (!columns.includes('jieqi')) {
+      db.executeSync(`ALTER TABLE divination_history ADD COLUMN jieqi TEXT`);
+      console.log('✅ Added jieqi column');
+    }
+    
+    // 添加 ju_name 字段
+    if (!columns.includes('ju_name')) {
+      db.executeSync(`ALTER TABLE divination_history ADD COLUMN ju_name TEXT`);
+      console.log('✅ Added ju_name column');
+    }
+  } catch (error) {
+    console.error('❌ Error migrating database:', error);
+  }
 };
 
 const seedData = async (): Promise<void> => {
