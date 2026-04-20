@@ -195,7 +195,7 @@ export const HomeScreen: React.FC = () => {
     {
       title: '八字排盘',
       icon: '🔮',
-      gradient: ['#f093fb', '#f5576c'],
+      gradient: ['#43e97b', '#38f9d7'], // 绿色背景
       onPress: () => navigation.navigate('BaZiInput'),
       desc: '四柱命理，推算人生',
     },
@@ -281,7 +281,7 @@ export const HomeScreen: React.FC = () => {
         {/* 查看万年历按钮 */}
         <TouchableOpacity 
           style={styles.calendarButton}
-          onPress={() => Alert.alert('万年历', '功能开发中...\n\n将支持：\n- 查看完整日历\n- 选择日期进行排盘\n- 查看每日吉凶')}
+          onPress={() => navigation.navigate('Calendar')}
         >
           <Text style={styles.calendarButtonText}>📅 查看万年历</Text>
         </TouchableOpacity>
@@ -570,11 +570,11 @@ const styles = StyleSheet.create({
   },
   featuresGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     justifyContent: 'space-between',
   },
   featureCard: {
-    width: (width - spacing.lg * 2 - spacing.md) / 2,
+    width: (width - spacing.lg * 2 - spacing.md * 2) / 3,
     height: 120, // 增加高度
     borderRadius: radii.xl,
     padding: spacing.md,

@@ -1,8 +1,6 @@
 pluginManagement {
     repositories {
-        // 1. 本地 Maven 仓库（离线依赖）
         maven { url uri('/Users/joel/.m2/repository') }
-        // 2. 国内镜像（备份）
         maven { url 'https://maven.aliyun.com/repository/gradle-plugins' }
         maven { url 'https://maven.aliyun.com/repository/public' }
         gradlePluginPortal()
@@ -16,5 +14,4 @@ include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 include ':react-native-update'
 project(':react-native-update').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-update/android')
-// include ':@react-native-async-storage_async-storage'
-// project(':@react-native-async-storage_async-storage').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-async-storage/async-storage/android')
+// 已移除 async-storage 依赖
