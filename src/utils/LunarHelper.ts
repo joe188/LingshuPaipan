@@ -1,4 +1,5 @@
-import { Solar, Lunar } from 'lunar-javascript';
+const lunar = require('lunar-javascript');
+const { Solar, Lunar } = lunar;
 
 /**
  * 获取指定公历日期的农历信息
