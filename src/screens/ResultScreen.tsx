@@ -212,7 +212,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       const id = await insertRecord(record);
       setRecordId(id);
       setSaved(true);
-      console.log('✅ Record saved to database, ID:', id);
+      console.log('✅ Record saved to database, ID:', id, 'baziType:', record.baziType, 'timePeriod:', record.timePeriod);
 
       // 触发后台 AI 解读生成
       generateAIInterpretation(id);

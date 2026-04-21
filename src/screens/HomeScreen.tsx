@@ -213,11 +213,26 @@ export const HomeScreen: React.FC = () => {
   // 次要功能卡片
   const secondaryCards = [
     {
+      title: '历史记录',
+      icon: '📜',
+      gradient: ['#f6d365', '#fda085'],
+      onPress: () => navigation.navigate('History'),
+      desc: '查阅过往排盘记录',
+    },
+  const secondaryCards = [
+    {
       title: '全局设置',
       icon: '⚙️',
       backgroundColor: colors.gold,
       onPress: () => navigation.navigate('Settings'),
       desc: 'AI 配置\n主题切换',
+    },
+    {
+      title: '历史记录',
+      icon: '📜',
+      gradient: ['#f6d365', '#fda085'],
+      onPress: () => navigation.navigate('History'),
+      desc: '查阅过往排盘记录',
     },
     {
       title: '使用手册',
