@@ -64,7 +64,8 @@ export const solarToLunar = (year: number, month: number, day: number) => {
     const ganZhiYear = getter(l, 'getYearInGanZhi', getGanZhiYear(year));
     const ganZhiMonth = getter(l, 'getMonthInGanZhi', getGanZhiMonth(year, month));
     const ganZhiDay = getter(l, 'getDayInGanZhi', getGanZhiDay(year, month, day));
-    const zodiac = getter(l, 'getZodiac', getZodiac(year));
+    let zodiac = getter(l, 'getZodiac', null);
+    if (!zodiac) zodiac = getZodiac(year);
     const lunarMonthName = getter(l, 'getMonthInChinese', '') || LUNAR_MONTHS[month - 1] + '月';
     const lunarDayName = getter(l, 'getDayInChinese', '') || LUNAR_DAYS[(day - 1) % 30];
     

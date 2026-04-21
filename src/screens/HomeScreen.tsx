@@ -56,6 +56,7 @@ const getTodayInfo = () => {
     // 获取今日吉凶
     const fortune = getTodayFortune(year, month, day);
     console.log('getTodayInfo: fortune returned:', fortune);
+    console.log('getTodayInfo: lunarInfo zodiac:', lunarInfo?.zodiac);
     console.log('getTodayInfo: fortune.yi length:', fortune.yi?.length);
     console.log('getTodayInfo: fortune.ji length:', fortune.ji?.length);
     console.log('getTodayInfo: fortune.jishen length:', fortune.jishen?.length);
