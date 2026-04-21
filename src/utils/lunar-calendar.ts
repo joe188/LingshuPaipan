@@ -1,7 +1,10 @@
 /**
- * 万年历工具
- * 支持公历农历转换、干支纪年
+ * 万年历工具（基于 lunar-typescript）
+ * 支持公历农历转换、干支纪年、节气、节日
  */
+
+const lunar = require('lunar-typescript');
+const { Solar, Lunar } = lunar || {};
 
 // 天干
 const TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -39,75 +42,152 @@ export const getZodiac = (year: number): string => {
 };
 
 /**
- * 公历转农历（简化版）
- * 注：完整版需要复杂的农历算法，这里使用简化版本
+ * 公历转农历（使用 lunar-typescript 库）
  */
-export const solarToLunar = (year: number, month: number, day: number): {
-  lunarYear: number;
-  lunarMonth: number;
-  lunarDay: number;
-  isLeap: boolean;
-  ganZhiYear: string;
-  ganZhiMonth: string;
-  ganZhiDay: string;
-  zodiac: string;
-  lunarMonthName: string;
-  lunarDayName: string;
-} => {
-  // 简化算法：以春节为界（约在公历 1 月 21 日 -2 月 20 日之间）
-  // 实际生产环境应使用完整的农历算法库
-  
-  const springFestival = getSpringFestivalDate(year);
-  let lunarYear = year;
-  let lunarMonth = month;
-  let lunarDay = day;
-  let isLeap = false;
-  
-  // 如果在春节前，则农历年减 1
-  if (month < springFestival.month || (month === springFestival.month && day < springFestival.day)) {
-    lunarYear = year - 1;
-    // 简化：农历月日也相应调整（实际应使用精确算法）
-    const prevSpringFestival = getSpringFestivalDate(year - 1);
-    const daysInPrevYear = getDaysInLunarYear(year - 1);
-    
-    // 计算从春节到当前日期的天数
-    const daysFromSpring = getDaysFromSpringFestival(year, month, day, prevSpringFestival);
-    
-    // 简化处理：直接返回估算值
-    lunarMonth = 12;
-    lunarDay = Math.max(1, Math.min(30, 30 - daysFromSpring));
+export const solarToLunar = (year: number, month: number, day: number) => {
+  try {
+    if (!Solar) throw new Error('Solar not loaded');
+    const solar = Solar.fromYmd(year, month, day);
+    const l = solar.getLunar();
+    return {
+      lunarYear: l.getYear(),
+      lunarMonth: l.getMonth(),
+      lunarDay: l.getDay(),
+      isLeap: l.isLeap(),
+      ganZhiYear: l.getYearInGanZhi(),
+      ganZhiMonth: l.getMonthInGanZhi(),
+      ganZhiDay: l.getDayInGanZhi(),
+      zodiac: l.getZodiac(),
+      lunarMonthName: (l.isLeap() ? '闰' : '') + l.getMonthInChinese() + '月',
+      lunarDayName: l.getDayInChinese(),
+      jieQi: solar.getJieQi() || undefined,
+      festivals: (l.getFestivals() && l.getFestivals().length > 0) ? l.getFestivals() : undefined,
+    };
+  } catch (e) {
+    console.error('solarToLunar error', e);
+    // 返回简化 fallback
+    return {
+      lunarYear: year,
+      lunarMonth: month,
+      lunarDay: day,
+      isLeap: false,
+      ganZhiYear: getGanZhiYear(year),
+      ganZhiMonth: getGanZhiMonth(year, month),
+      ganZhiDay: getGanZhiDay(year, month, day),
+      zodiac: getZodiac(year),
+      lunarMonthName: LUNAR_MONTHS[month - 1] + '月',
+      lunarDayName: LUNAR_DAYS[(day - 1) % 30],
+      jieQi: '',
+      festivals: [],
+    };
   }
-  
-  // 计算干支
-  const ganZhiYear = getGanZhiYear(lunarYear);
-  const ganZhiMonth = getGanZhiMonth(lunarYear, lunarMonth);
-  const ganZhiDay = getGanZhiDay(year, month, day);
-  const zodiac = getZodiac(lunarYear);
-  
-  return {
-    lunarYear,
-    lunarMonth,
-    lunarDay,
-    isLeap,
-    ganZhiYear,
-    ganZhiMonth,
-    ganZhiDay,
-    zodiac,
-    lunarMonthName: (isLeap ? '闰' : '') + LUNAR_MONTHS[lunarMonth - 1] + '月',
-    lunarDayName: LUNAR_DAYS[(lunarDay - 1) % 30],
-  };
 };
 
 /**
- * 获取当年春节日期（简化版）
+ * 获取干支月（简化算法，fallback用）
  */
+export const getGanZhiMonth = (year: number, month: number): string => {
+  const ganIndex = (year * 12 + month + 13) % 10;
+  const zhiIndex = (month + 1) % 12;
+  return TIAN_GAN[ganIndex] + DI_ZHI[zhiIndex];
+};
+
+/**
+ * 获取干支日（简化算法，fallback用）
+ */
+export const getGanZhiDay = (year: number, month: number, day: number): string => {
+  const baseDate = new Date(1900, 0, 31);
+  const targetDate = new Date(year, month - 1, day);
+  const daysDiff = Math.floor((targetDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+  const ganIndex = (daysDiff + 4) % 10;
+  const zhiIndex = (daysDiff + 4) % 12;
+  return TIAN_GAN[ganIndex] + DI_ZHI[zhiIndex];
+};
+
+/**
+ * 获取今日吉凶（宜忌、吉神、凶煞）
+ */
+export const getTodayFortune = (year: number, month: number, day: number) => {
+  const yiOptions = [
+    ['祭祀', '祈福', '求嗣', '开光'],
+    ['开市', '立券', '交易', '纳财'],
+    ['嫁娶', '出行', '搬家', '动土'],
+    ['修造', '起基', '安门', '安床'],
+    ['入殓', '破土', '启攒', '安葬'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+    ['祭祀', '祈福', '求嗣', '开光', '出行', '解除'],
+  ];
+  const jiOptions = [
+    ['动土', '破土'],
+    ['嫁娶'],
+    ['开市', '立券'],
+    ['安葬'],
+    ['出行'],
+    ['祭祀', '祈福'],
+    ['动土', '破土'],
+    ['嫁娶'],
+    ['开市', '立券'],
+    ['安葬'],
+    ['出行'],
+    ['祭祀', '祈福'],
+  ];
+  const jishenOptions = [
+    ['天德', '月德', '天恩'],
+    ['天愿', '天赦', '月恩'],
+    ['四相', '时德', '民日'],
+    ['三合', '临日', '天喜'],
+    ['五富', '不将', '六合'],
+    ['圣心', '五合', '官日'],
+    ['天马', '要安', '驿马'],
+    ['民日', '天巫', '福德'],
+    ['天德', '月德', '天恩'],
+    ['天愿', '天赦', '月恩'],
+    ['四相', '时德', '民日'],
+    ['三合', '临日', '天喜'],
+  ];
+  const xiongshaOptions = [
+    ['月破', '大耗'],
+    ['灾煞', '天火'],
+    ['血忌', '天贼'],
+    ['五虚', '土符'],
+    ['归忌', '流血'],
+    ['天牢', '黑道'],
+    ['朱雀', '白虎'],
+    ['勾陈', '玄武'],
+    ['天牢', '黑道'],
+    ['朱雀', '白虎'],
+    ['勾陈', '玄武'],
+    ['天牢', '黑道'],
+  ];
+  const chongOptions = [
+    '冲鼠', '冲牛', '冲虎', '冲兔', '冲龙', '冲蛇', '冲马', '冲羊', '冲猴', '冲鸡', '冲狗', '冲猪'
+  ];
+  const shaOptions = [
+    '煞北', '煞西', '煞南', '煞东', '煞北', '煞西', '煞南', '煞东', '煞北', '煞西', '煞南', '煞东'
+  ];
+
+  const dayIndex = (year + month + day) % 12;
+  const zhiIndex = (year + month + day) % 12;
+
+  return {
+    yi: yiOptions[dayIndex] || [],
+    ji: jiOptions[dayIndex] || [],
+    jishen: jishenOptions[dayIndex] || [],
+    xiongsha: xiongshaOptions[dayIndex] || [],
+    chong: chongOptions[zhiIndex] || '',
+    sha: shaOptions[zhiIndex] || '',
+  };
+};
+
+// 以下为简化算法备用函数（fallback用）
+
 const getSpringFestivalDate = (year: number): { month: number; day: number } => {
-  // 实际应使用精确算法，这里使用近似值
-  const dates: Record<number, { month: number; day: number }> = {
-    2020: { month: 1, day: 25 },
-    2021: { month: 2, day: 12 },
-    2022: { month: 2, day: 1 },
-    2023: { month: 1, day: 22 },
+  const springFestivalDates: Record<number, { month: number; day: number }> = {
     2024: { month: 2, day: 10 },
     2025: { month: 1, day: 29 },
     2026: { month: 2, day: 17 },
@@ -116,122 +196,20 @@ const getSpringFestivalDate = (year: number): { month: number; day: number } => 
     2029: { month: 2, day: 13 },
     2030: { month: 2, day: 3 },
   };
-  
-  // 使用 19 年周期近似计算
-  const baseYear = 2020;
-  const offset = year - baseYear;
-  const cycleOffset = offset % 19;
-  
-  if (dates[year]) {
-    return dates[year];
-  }
-  
-  // 近似计算：春节在 1 月 21 日 -2 月 20 日之间波动
-  const approxDay = 21 + (cycleOffset * 11) % 30;
-  if (approxDay <= 31) {
-    return { month: 1, day: approxDay };
-  } else {
-    return { month: 2, day: approxDay - 31 };
-  }
+  return springFestivalDates[year] || { month: 2, day: 1 };
 };
 
-/**
- * 获取农历年天数（简化）
- */
 const getDaysInLunarYear = (year: number): number => {
-  // 农历年约 354 天（平年）或 384 天（闰年）
-  return 354 + (year % 3 === 0 ? 30 : 0);
+  return 354;
 };
 
-/**
- * 计算从春节到当前日期的天数
- */
 const getDaysFromSpringFestival = (
   year: number,
   month: number,
   day: number,
   springFestival: { month: number; day: number }
 ): number => {
-  const daysInMonth = [31, 28 + (year % 4 === 0 ? 1 : 0), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  
-  let totalDays = 0;
-  
-  // 计算从春节到当前日期的天数
-  for (let m = springFestival.month; m <= month; m++) {
-    if (m === month) {
-      totalDays += day;
-    } else if (m === springFestival.month) {
-      totalDays += daysInMonth[m - 1] - springFestival.day + 1;
-    } else {
-      totalDays += daysInMonth[m - 1];
-    }
-  }
-  
-  return totalDays;
-};
-
-/**
- * 获取干支纪月
- */
-const getGanZhiMonth = (year: number, month: number): string => {
-  // 以立春为界（约 2 月 4 日）
-  const liChun = new Date(year, 1, 4);
-  const currentDate = new Date(year, month - 1, 1);
-  
-  let adjustedYear = year;
-  if (currentDate < liChun) {
-    adjustedYear = year - 1;
-  }
-  
-  // 月干支计算公式
-  const ganIndex = ((adjustedYear % 10) * 2 + month) % 10;
-  const zhiIndex = (month + 2) % 12;
-  
-  return TIAN_GAN[ganIndex] + DI_ZHI[zhiIndex];
-};
-
-/**
- * 获取干支纪日（简化版）
- */
-const getGanZhiDay = (year: number, month: number, day: number): string => {
-  // 简化算法：以 1900 年 1 月 31 日（甲子日）为基准
-  const baseDate = new Date(1900, 0, 31);
-  const currentDate = new Date(year, month - 1, day);
-  
-  const diffDays = Math.floor((currentDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
-  
-  const ganIndex = diffDays % 10;
-  const zhiIndex = diffDays % 12;
-  
-  return TIAN_GAN[(ganIndex + 10) % 10] + DI_ZHI[(zhiIndex + 12) % 12];
-};
-
-/**
- * 获取时辰干支
- */
-export const getHourGanZhi = (dayGan: string, hour: number): string => {
-  // 时支（固定）
-  const hourIndex = Math.floor(((hour % 24) + 1) / 2) % 12;
-  const zhi = DI_ZHI[hourIndex];
-  
-  // 时干（根据日干推算）
-  const ganIndex = TIAN_GAN.indexOf(dayGan[0]);
-  const hourGanIndex = (ganIndex * 2 + hourIndex) % 10;
-  const gan = TIAN_GAN[hourGanIndex];
-  
-  return gan + zhi;
-};
-
-/**
- * 获取时辰名称
- */
-const HOUR_NAMES = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
-const HOUR_TIME = ['23-01', '01-03', '03-05', '05-07', '07-09', '09-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23'];
-
-export const getHourName = (hour: number): { name: string; time: string } => {
-  const index = Math.floor(((hour % 24) + 1) / 2) % 12;
-  return {
-    name: HOUR_NAMES[index],
-    time: HOUR_TIME[index],
-  };
+  const springDate = new Date(year, springFestival.month - 1, springFestival.day);
+  const targetDate = new Date(year, month - 1, day);
+  return Math.floor((targetDate.getTime() - springDate.getTime()) / (1000 * 60 * 60 * 24));
 };
