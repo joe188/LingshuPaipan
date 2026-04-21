@@ -27,6 +27,7 @@ interface HistoryItem {
   monthGanzhi?: string;
   dayGanzhi?: string;
   hourGanzhi?: string;
+  hour?: string; // 时辰显示文本
   location?: string;
   fiveElements?: {
     wood: number;
@@ -58,6 +59,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBack, onViewItem
         solarDate: r.solarDate,
         lunarDate: r.lunarDate,
         timePeriod: r.timePeriod,
+        hour: r.timePeriod, // 用于显示时辰
         yearGanzhi: r.yearGanzhi,
         monthGanzhi: r.monthGanzhi,
         dayGanzhi: r.dayGanzhi,
@@ -182,7 +184,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBack, onViewItem
         <FlatList
           data={history}
           renderItem={renderHistoryItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
         />

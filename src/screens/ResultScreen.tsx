@@ -3,7 +3,7 @@
  * 功能:展示四柱八字、五行分布、AI 解卦入口
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,8 +17,8 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { GuochaoButton } from '../components/GuochaoButton';
 import { GuochaoCard } from '../components/GuochaoCard';
-import { insertRecord, getRecord, updateRecord } from '../database/queries/history';
-import { getAIInterpretation } from '../utils/ai-interpret';
+import { insertRecord, getRecordById as getRecord, updateRecord } from '../database/queries/history';
+import { generateAIInterpretation as callAIInterpretationAPI } from '../utils/ai-interpret';
 import { DivinationRecord } from '../database/models/DivinationRecord';
 import theme from '../styles/theme';
 const { colors, fonts, spacing, radii } = theme;
@@ -142,26 +142,14 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
     };
   }, []);
 
-  // 触发后台 AI 解读生成
-  const generateAIInterpretation = async (id: number) => {
+  // 触发后台 AI 解读生成（调用 API，由服务器更新数据库）
+  const triggerAIInterpretation = async (id: number) => {
     try {
       setAiGenerating(true);
-      const fourPillars = {
-        year: ganZhi.year.gan + ganZhi.year.zhi,
-        month: ganZhi.month.gan + ganZhi.month.zhi,
-        day: ganZhi.day.gan + ganZhi.day.zhi,
-        hour: ganZhi.hour.gan + ganZhi.hour.zhi,
-      };
-      const fiveElements = data?.fiveElements || { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
-      const interpretation = await getAIInterpretation({ fourPillars, fiveElements });
-      // 更新数据库
-      await updateRecord(id, { aiInterpretation: interpretation });
-      // 更新本地状态
-      setAiInterpretation(interpretation);
-      setAiGenerating(false);
+      await callAIInterpretationAPI(id);
+      // 轮询会自动检测结果更新，无需在此 setAiInterpretation
     } catch (error) {
       console.error('❌ AI 生成失败:', error);
-      // 即使失败也停止生成状态
       setAiGenerating(false);
     }
   };
@@ -215,7 +203,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       console.log('✅ Record saved to database, ID:', id, 'baziType:', record.baziType, 'timePeriod:', record.timePeriod);
 
       // 触发后台 AI 解读生成
-      generateAIInterpretation(id);
+      triggerAIInterpretation(id);
 
       // 开始轮询等待 AI 结果
       startPollingAIResult(id);
@@ -467,7 +455,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         </GuochaoCard>
 
         {/* AI 解卦 */}
-        <GuochaoCard title="💡 AI 解卦" variant="silk">
+        <GuochaoCard title="💡 AI 解卦" variant="pattern">
           {aiGenerating ? (
             <View style={styles.aiStatusLoading}>
               <ActivityIndicator size="small" color={colors.cinnabarRed} />
@@ -852,7 +840,6 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     color: colors.inkBlack,
     lineHeight: 28,
-    whiteSpace: 'pre-wrap',
   },
   aiPlaceholder: {
     fontFamily: fonts.sourceHan,

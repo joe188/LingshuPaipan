@@ -219,7 +219,6 @@ export const HomeScreen: React.FC = () => {
       onPress: () => navigation.navigate('History'),
       desc: '查阅过往排盘记录',
     },
-  const secondaryCards = [
     {
       title: '全局设置',
       icon: '⚙️',
