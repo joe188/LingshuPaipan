@@ -14,8 +14,28 @@ import {
 import { GuochaoCard } from '../components/GuochaoCard';
 import { GuochaoButton } from '../components/GuochaoButton';
 import { colors } from '../styles/theme';
-import type { HistoryItem } from '../utils/storage';
-import { getHistory, deleteHistory, clearHistory } from '../utils/storage';
+import { getRecentRecords, deleteRecord, clearAllRecords } from '../database/queries/history';
+import { DivinationRecord } from '../database/models/DivinationRecord';
+
+interface HistoryItem {
+  id: number;
+  baziType: string;
+  solarDate?: string;
+  lunarDate?: string;
+  timePeriod?: string;
+  yearGanzhi?: string;
+  monthGanzhi?: string;
+  dayGanzhi?: string;
+  hourGanzhi?: string;
+  location?: string;
+  fiveElements?: {
+    wood: number;
+    fire: number;
+    earth: number;
+    metal: number;
+    water: number;
+  };
+}
 
 interface HistoryScreenProps {
   onBack: () => void;
@@ -26,12 +46,33 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBack, onViewItem
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 加载历史记录
+  // 加载历史记录（从数据库）
   const loadHistory = async () => {
     setLoading(true);
-    const items = await getHistory();
-    setHistory(items);
-    setLoading(false);
+    try {
+      const records = await getRecentRecords(100); // 获取最近100条
+      // 转换为 HistoryItem 格式
+      const items: HistoryItem[] = records.map(r => ({
+        id: r.id || 0,
+        baziType: r.baziType,
+        solarDate: r.solarDate,
+        lunarDate: r.lunarDate,
+        timePeriod: r.timePeriod,
+        yearGanzhi: r.yearGanzhi,
+        monthGanzhi: r.monthGanzhi,
+        dayGanzhi: r.dayGanzhi,
+        hourGanzhi: r.hourGanzhi,
+        location: r.location,
+        fiveElements: r.wuxingData ? (() => {
+          try { return JSON.parse(r.wuxingData); } catch { return { wood:0, fire:0, earth:0, metal:0, water:0 }; }
+        })() : undefined,
+      }));
+      setHistory(items);
+    } catch (error) {
+      console.error('Failed to load history:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -39,14 +80,14 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBack, onViewItem
   }, []);
 
   // 删除单条记录
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     Alert.alert('确认删除', '确定要删除这条记录吗？', [
       { text: '取消', style: 'cancel' },
       {
         text: '删除',
         style: 'destructive',
         onPress: async () => {
-          await deleteHistory(id);
+          await deleteRecord(id);
           loadHistory();
         },
       },
@@ -61,7 +102,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBack, onViewItem
         text: '清空',
         style: 'destructive',
         onPress: async () => {
-          await clearHistory();
+          await clearAllRecords();
           loadHistory();
         },
       },
@@ -79,13 +120,15 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBack, onViewItem
         <Text style={styles.historyHour}>{item.hour}</Text>
       </View>
       
-      <View style={styles.fiveElementsRow}>
-        <Text style={styles.elementText}>木：{item.fiveElements.wood}%</Text>
-        <Text style={styles.elementText}>火：{item.fiveElements.fire}%</Text>
-        <Text style={styles.elementText}>土：{item.fiveElements.earth}%</Text>
-        <Text style={styles.elementText}>金：{item.fiveElements.metal}%</Text>
-        <Text style={styles.elementText}>水：{item.fiveElements.water}%</Text>
-      </View>
+      {item.fiveElements && (
+        <View style={styles.fiveElementsRow}>
+          <Text style={styles.elementText}>木：{item.fiveElements.wood}%</Text>
+          <Text style={styles.elementText}>火：{item.fiveElements.fire}%</Text>
+          <Text style={styles.elementText}>土：{item.fiveElements.earth}%</Text>
+          <Text style={styles.elementText}>金：{item.fiveElements.metal}%</Text>
+          <Text style={styles.elementText}>水：{item.fiveElements.water}%</Text>
+        </View>
+      )}
 
       <View style={styles.historyActions}>
         <GuochaoButton
