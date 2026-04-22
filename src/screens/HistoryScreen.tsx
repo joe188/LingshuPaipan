@@ -122,12 +122,27 @@ export const HistoryScreen: React.FC = () => {
   const handleShare = async (item: HistoryItem) => {
     try {
       const shareText = formatRecordForShare(item);
-      await Share.open({
-        message: shareText,
-        title: `灵枢排盘 - ${getTypeLabel(item.baziType)}`,
-      });
-    } catch (error) {
-      console.error('分享失败:', error);
+      
+      // 尝试使用系统分享
+      try {
+        const result = await Share.open({
+          message: shareText,
+          title: `灵枢排盘 - ${getTypeLabel(item.baziType)}`,
+        });
+        console.log('✅ 分享成功:', result);
+      } catch (shareError: any) {
+        // 如果分享失败，复制到剪贴板
+        console.log('⚠️ 分享不可用，复制到剪贴板');
+        await Clipboard.setString(shareText);
+        Alert.alert(
+          '✅ 已复制到剪贴板',
+          '分享功能不可用，已将内容复制到剪贴板，可以手动粘贴发送',
+          [{ text: '好的' }]
+        );
+      }
+    } catch (error: any) {
+      console.error('❌ 分享错误:', error);
+      Alert.alert('❌ 操作失败', error.message || '请稍后重试');
     }
   };
 

@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { solarToLunar } from '../utils/lunar-calendar';
@@ -282,38 +283,38 @@ export default function CalendarScreen() {
           )}
         </View>
 
-        {/* 年份选择器弹窗 - 平铺网格可滚动 */}
+        {/* 年份选择器弹窗 - 5 列网格可滚动（200 年范围） */}
         {showYearSelector && (
           <View style={styles.pickerOverlay}>
             <View style={styles.pickerContainer}>
               <Text style={styles.pickerTitle}>选择年份</Text>
-              <ScrollView 
-                style={{ maxHeight: 350 }}
-                contentContainerStyle={{ paddingBottom: 8 }}
+              <FlatList
+                data={Array.from({ length: 201 }, (_, i) => 1900 + i)}
+                keyExtractor={(item) => item.toString()}
+                numColumns={5}
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingBottom: 10 }}
                 showsVerticalScrollIndicator
-              >
-                <View style={styles.pickerGrid}>
-                  {Array.from({ length: 101 }, (_, i) => 1950 + i).map((year) => (
-                    <TouchableOpacity
-                      key={year}
+                removeClippedSubviews={false}
+                renderItem={({ item: year }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.pickerGridItem,
+                      year === currentYear && styles.pickerGridItemSelected,
+                    ]}
+                    onPress={() => selectYear(year)}
+                  >
+                    <Text
                       style={[
-                        styles.pickerGridItem,
-                        year === currentYear && styles.pickerGridItemSelected,
+                        styles.pickerGridItemText,
+                        year === currentYear && styles.pickerGridItemTextSelected,
                       ]}
-                      onPress={() => selectYear(year)}
                     >
-                      <Text
-                        style={[
-                          styles.pickerGridItemText,
-                          year === currentYear && styles.pickerGridItemTextSelected,
-                        ]}
-                      >
-                        {year}年
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
+                      {year}年
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
               <TouchableOpacity onPress={() => setShowYearSelector(false)} style={styles.pickerClose}>
                 <Text style={styles.pickerCloseText}>关闭</Text>
               </TouchableOpacity>
@@ -460,12 +461,14 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   pickerContainer: {
-    backgroundColor: '#fff', borderRadius: 16, width: 320, maxHeight: 450,
-    overflow: 'hidden', padding: 16,
+    backgroundColor: '#fff', borderRadius: 16, width: 320,
+    padding: 16, height: 500,
+    flexDirection: 'column',
   },
   pickerTitle: {
     fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+    flexShrink: 0,
   },
   pickerGrid: {
     flexDirection: 'row',
@@ -473,20 +476,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   pickerGridItem: {
-    width: '30%',
-    paddingVertical: 12,
+    width: '18%',
+    paddingVertical: 8,
+    paddingHorizontal: 2,
     alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: 6,
+    marginBottom: 6,
   },
   pickerGridItemSelected: { backgroundColor: '#e3f2fd' },
-  pickerGridItemText: { fontSize: 15, color: '#333' },
-  pickerGridItemTextSelected: { fontSize: 15, color: '#1976d2', fontWeight: 'bold' },
+  pickerGridItemText: { fontSize: 13, color: '#333', textAlign: 'center' },
+  pickerGridItemTextSelected: { fontSize: 13, color: '#1976d2', fontWeight: 'bold' },
   pickerClose: {
     marginTop: 8,
     paddingVertical: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#eee',
+    flexShrink: 0,
   },
   pickerCloseText: { fontSize: 16, color: '#666', textAlign: 'center' },
 });

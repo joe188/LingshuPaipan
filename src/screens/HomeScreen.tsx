@@ -576,9 +576,9 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     width: (width - spacing.lg * 2 - spacing.md * 2) / 3,
-    height: 120, // 增加高度
+    height: 100,
     borderRadius: radii.xl,
-    padding: spacing.md,
+    padding: spacing.sm,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
@@ -589,11 +589,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   featureIcon: {
-    fontSize: 38,
+    fontSize: 32,
     textAlign: 'center',
   },
   featureTitle: {
-    fontSize: fonts.sizes.lg,
+    fontSize: fonts.sizes.md,
     fontFamily: fonts.kaiTi,
     color: colors.white,
     fontWeight: fonts.weights.bold,
@@ -619,9 +619,9 @@ const styles = StyleSheet.create({
   },
   bottomCard: {
     width: (width - spacing.lg * 2 - spacing.md) / 2,
-    height: 80,
+    height: 70,
     borderRadius: radii.lg,
-    padding: spacing.md,
+    padding: spacing.sm,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -632,15 +632,16 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   bottomIcon: {
+    fontSize: 20,
     textAlign: 'center',
   },
   bottomTitle: {
-    fontSize: fonts.sizes.sm,
+    fontSize: fonts.sizes.xs,
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     fontWeight: fonts.weights.bold,
     textAlign: 'center',
-    marginTop: spacing.xs,
+    marginTop: 2,
   },
 });
 

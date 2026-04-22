@@ -148,10 +148,43 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   const triggerAIInterpretation = async (id: number) => {
     try {
       setAiGenerating(true);
-      await callAIInterpretationAPI(id);
-      // 轮询会自动检测结果更新，无需在此 setAiInterpretation
+      
+      // 准备八字数据
+      if (!data || !data.ganZhi) {
+        throw new Error('八字数据不完整');
+      }
+      
+      const fourPillars = {
+        year: `${data.ganZhi.year.gan}${data.ganZhi.year.zhi}`,
+        month: `${data.ganZhi.month.gan}${data.ganZhi.month.zhi}`,
+        day: `${data.ganZhi.day.gan}${data.ganZhi.day.zhi}`,
+        hour: `${data.ganZhi.hour.gan}${data.ganZhi.hour.zhi}`,
+      };
+      
+      const fiveElements = data.fiveElements || data.wuxingDistribution || {
+        wood: 0,
+        fire: 0,
+        earth: 0,
+        metal: 0,
+        water: 0,
+      };
+      
+      console.log('🤖 调用 AI API，四柱:', fourPillars, '五行:', fiveElements);
+      
+      // 调用 AI API（传入实际数据，而非 ID）
+      const aiResult = await callAIInterpretationAPI(fourPillars, fiveElements);
+      
+      // 保存 AI 结果到数据库
+      if (aiResult && id) {
+        await updateRecord(id, {
+          aiInterpretation: aiResult,
+        });
+        setAiInterpretation(aiResult);
+      }
+      
     } catch (error) {
       console.error('❌ AI 生成失败:', error);
+      Alert.alert('❌ AI 解卦失败', (error as Error).message);
       setAiGenerating(false);
     }
   };
