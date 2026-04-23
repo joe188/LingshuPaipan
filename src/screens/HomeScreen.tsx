@@ -303,7 +303,7 @@ export const HomeScreen: React.FC = () => {
               onPress={feature.onPress}
               activeOpacity={0.8}
             >
-              <Text style={[styles.featureIcon, { fontSize: 32, textAlign: 'center' }]}>{feature.icon}</Text>
+              <Text style={[styles.featureIcon, { fontSize: width < 360 ? 24 : 32, textAlign: 'center' }]}>{feature.icon}</Text>
               <Text style={styles.featureTitle}>{feature.title}</Text>
             </TouchableOpacity>
           ))}
@@ -319,14 +319,14 @@ export const HomeScreen: React.FC = () => {
               style={[
                 styles.bottomCard,
                 {
-                  backgroundColor: card.backgroundColor,
-                  borderColor: card.borderColor || 'transparent',
+                  backgroundColor: card.backgroundColor || colors.gold,
+                  borderColor: 'transparent',
                 }
               ]}
               onPress={card.onPress}
               activeOpacity={0.8}
             >
-              <Text style={[styles.bottomIcon, { fontSize: 24, textAlign: 'center' }]}>{card.icon}</Text>
+              <Text style={[styles.bottomIcon, { fontSize: width < 360 ? 18 : 24, textAlign: 'center' }]}>{card.icon}</Text>
               <Text style={styles.bottomTitle}>{card.title}</Text>
             </TouchableOpacity>
           ))}
@@ -571,12 +571,15 @@ const styles = StyleSheet.create({
   },
   featuresGrid: {
     flexDirection: 'row',
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.sm,
   },
   featureCard: {
-    width: (width - spacing.lg * 2 - spacing.md * 2) / 3,
-    height: 100,
+    width: '30%', // 自适应宽度，留出间距
+    aspectRatio: 1, // 保持正方形
+    minWidth: 90, // 最小宽度
+    maxWidth: 120, // 最大宽度
     borderRadius: radii.xl,
     padding: spacing.sm,
     justifyContent: 'center',
@@ -589,11 +592,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   featureIcon: {
-    fontSize: 32,
+    fontSize: width < 360 ? 24 : 32, // 小屏幕缩小图标
     textAlign: 'center',
   },
   featureTitle: {
-    fontSize: fonts.sizes.md,
+    fontSize: width < 360 ? fonts.sizes.sm : fonts.sizes.md,
     fontFamily: fonts.kaiTi,
     color: colors.white,
     fontWeight: fonts.weights.bold,
@@ -616,10 +619,11 @@ const styles = StyleSheet.create({
   bottomGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.sm,
   },
   bottomCard: {
-    width: (width - spacing.lg * 2 - spacing.md) / 2,
-    height: 70,
+    width: '48%', // 自适应宽度
+    minHeight: 70, // 最小高度
     borderRadius: radii.lg,
     padding: spacing.sm,
     justifyContent: 'center',
@@ -632,11 +636,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   bottomIcon: {
-    fontSize: 20,
+    fontSize: width < 360 ? 18 : 20,
     textAlign: 'center',
   },
   bottomTitle: {
-    fontSize: fonts.sizes.xs,
+    fontSize: width < 360 ? 10 : fonts.sizes.xs,
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     fontWeight: fonts.weights.bold,
