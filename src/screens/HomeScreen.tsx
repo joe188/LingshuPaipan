@@ -24,6 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { solarToLunar, getGanZhiYear, getZodiac, getTodayFortune } from '../utils/lunar-calendar';
 import { getLunarInfo } from '../utils/LunarHelper';
+import { responsiveHeight, responsiveFontSize, responsiveWidth } from '../styles/responsive';
 
 const { colors, fonts, spacing, radii } = theme;
 const { width, height } = Dimensions.get('window');
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
   
   // 八卦头部
   baguaHeader: {
-    height: 140,
+    height: responsiveHeight(10), // 响应式高度
     backgroundColor: colors.cinnabarRed,
     justifyContent: 'center',
     alignItems: 'center',
@@ -446,11 +447,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   fortuneLabel: {
-    fontSize: fonts.sizes.sm,
+    fontSize: responsiveFontSize(14), // 响应式字体
     fontFamily: fonts.kaiTi,
     color: colors.inkBlack,
     fontWeight: fonts.weights.semibold,
-    width: 60,
+    width: responsiveWidth(12), // 响应式宽度
   },
   fortuneValue: {
     fontSize: fonts.sizes.sm,

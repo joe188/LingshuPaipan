@@ -10,11 +10,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
 import theme from '../styles/theme';
 import { calculateHexagramNumber, GUA64_NAME, getHexagramMeaning } from '../utils/liuyao-data';
+import { responsiveFontSize, responsiveWidth, responsiveHeight } from '../styles/responsive';
 
 const { colors, fonts, spacing, radii } = theme;
+const { width, height } = Dimensions.get('window');
 
 // 爻位名称（从下往上）
 const YAO_POSITIONS = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
@@ -329,12 +332,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: responsiveFontSize(24), // 响应式字体
     fontWeight: 'bold',
     color: colors.primary,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(14), // 响应式字体
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
@@ -345,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   guaLabel: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(16), // 响应式字体
     fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
@@ -377,52 +380,52 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
   },
   yaoPosition: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(14), // 响应式字体
     color: colors.textSecondary,
-    width: 40,
+    width: responsiveWidth(8), // 响应式宽度
   },
   yaoContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   yaoLine: {
-    width: 60,
-    height: 6,
-    borderRadius: 3,
+    width: responsiveWidth(12), // 响应式宽度
+    height: responsiveHeight(1.5), // 响应式高度
+    borderRadius: responsiveBorderRadius(3), // 响应式圆角
   },
   yangLine: {
     backgroundColor: colors.primary,
   },
   yinLine: {
     flexDirection: 'row',
-    width: 60,
+    width: responsiveWidth(12), // 响应式宽度
     justifyContent: 'space-between',
   },
   yinSegment: {
-    width: 24,
-    height: 6,
+    width: responsiveWidth(5), // 响应式宽度
+    height: responsiveHeight(1.5), // 响应式高度
     backgroundColor: colors.primary,
-    borderRadius: 3,
+    borderRadius: responsiveBorderRadius(3), // 响应式圆角
   },
   yinGap: {
-    width: 8,
+    width: responsiveWidth(2), // 响应式宽度
   },
   movingIndicator: {
     marginLeft: spacing.sm,
   },
   movingText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(16), // 响应式字体
     color: colors.accent,
   },
   yaoValue: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(12), // 响应式字体
     color: colors.textSecondary,
-    width: 20,
+    width: responsiveWidth(4), // 响应式宽度
     textAlign: 'right',
   },
   yaoPlaceholder: {
-    width: 60,
-    height: 6,
+    width: responsiveWidth(12), // 响应式宽度
+    height: responsiveHeight(1.5), // 响应式高度
     backgroundColor: colors.border,
     borderRadius: 3,
   },

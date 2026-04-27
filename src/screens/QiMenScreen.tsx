@@ -14,6 +14,7 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { GuochaoButton } from '../components/GuochaoButton';
 import { GuochaoCard } from '../components/GuochaoCard';
@@ -23,8 +24,10 @@ import { calculateQiMen, QiMenResult } from '../utils/qimen-calculator';
 import { generateFullQiMenAnalysis } from '../utils/qimen-interpret';
 import { insertRecord, updateRecord } from '../database/queries/history';
 import type { DivinationRecord } from '../database/models/DivinationRecord';
+import { responsiveFontSize, responsiveWidth, responsiveHeight } from '../styles/responsive';
 
 const { colors, fonts, spacing, radii } = theme;
+const { width, height } = Dimensions.get('window');
 
 // 24 节气列表
 const JIEQI_LIST = [
@@ -338,28 +341,21 @@ const styles = StyleSheet.create({
     height: spacing.lg,
   },
   pickerText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(16), // 响应式字体
     color: '#1A1A1A',
     fontWeight: '500',
   },
   juName: {
-    fontSize: 24,
+    fontSize: responsiveFontSize(24), // 响应式字体
     fontWeight: 'bold',
     color: '#8B4513',
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: spacing.lg,
-    gap: spacing.md,
-    justifyContent: 'center',
-  },
   interpretationText: {
-    fontSize: 15,
+    fontSize: responsiveFontSize(15), // 响应式字体
     color: '#1A1A1A',
-    lineHeight: 24,
+    lineHeight: responsiveHeight(6), // 响应式行高
   },
   modalOverlay: {
     flex: 1,
@@ -382,7 +378,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
   },
   pickerItemText: {
-    fontSize: 18,
+    fontSize: responsiveFontSize(18), // 响应式字体
     color: '#1A1A1A',
     textAlign: 'center',
   },
@@ -403,7 +399,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: spacing.md,
     color: '#FFF8F0',
-    fontSize: 16,
+    fontSize: responsiveFontSize(16), // 响应式字体
   },
 });
 

@@ -16,13 +16,16 @@ import {
   ActivityIndicator,
   Animated,
   TextInput,
+  Dimensions,
 } from 'react-native';
 import theme from '../styles/theme';
 import { calculateBaZi, adjustSolarTime, BaZiResult } from '../utils/bazi-calculator';
 import { CITY_COORDINATES, getCoordinate } from '../data/city-coordinates-full';
 import { solarToLunar, getGanZhiYear, getZodiac } from '../utils/lunar-calendar';
+import { responsiveFontSize, responsiveWidth, responsiveHeight } from '../styles/responsive';
 
 const { colors, fonts, spacing, radii } = theme;
+const { width, height } = Dimensions.get('window');
 
 // 小时名称（12 时辰）
 const HOUR_NAMES = ['子时', '丑时', '寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时'];
@@ -588,7 +591,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   baguaSymbol: {
-    fontSize: 20,
+    fontSize: responsiveFontSize(20), // 响应式字体
     color: colors.gold,
     marginHorizontal: spacing.md,
     fontFamily: fonts.kaiTi,
@@ -629,14 +632,14 @@ const styles = StyleSheet.create({
   dateButton: {
     flex: 1,
     backgroundColor: colors.riceWhite,
-    paddingVertical: spacing.md,
+    paddingVertical: responsiveHeight(2), // 响应式高度
     paddingHorizontal: spacing.sm,
     borderRadius: radii.lg,
     alignItems: 'center',
     marginHorizontal: spacing.sm,
     borderWidth: 1,
     borderColor: colors.gray[200],
-    minHeight: 60,
+    minHeight: responsiveHeight(8), // 响应式最小高度
   },
   dateLabel: {
     fontSize: fonts.sizes.xs,

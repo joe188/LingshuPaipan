@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Share, Alert, Clipboard } from 'react-native';
+import { Share, Alert, Clipboard, Dimensions } from 'react-native';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
 import { GuochaoCard } from '../components/GuochaoCard';
 import { GuochaoButton } from '../components/GuochaoButton';
 import theme from '../styles/theme';
+import { responsiveFontSize, responsiveWidth, responsiveHeight } from '../styles/responsive';
 import {
   getRecentRecords,
   getRecordsByType,
@@ -29,6 +30,7 @@ import {
 import { DivinationRecord } from '../database/models/DivinationRecord';
 
 const { colors, fonts, spacing, radii } = theme;
+const { width, height } = Dimensions.get('window');
 
 type TabType = 'all' | 'liuyao' | 'bazi' | 'qimen';
 
@@ -365,37 +367,37 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: responsiveFontSize(18), // 响应式字体
     fontWeight: 'bold',
     color: colors.inkBlack,
   },
   headerPlaceholder: {
-    width: 60,
+    width: responsiveWidth(12), // 响应式宽度
   },
   tabsContainer: {
     backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: responsiveWidth(4), // 响应式内边距
+    paddingVertical: responsiveHeight(3), // 响应式内边距
     borderBottomWidth: 1,
     borderBottomColor: colors.gray[200],
   },
   tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    paddingHorizontal: responsiveWidth(4), // 响应式内边距
+    paddingVertical: responsiveHeight(2), // 响应式内边距
+    borderRadius: responsiveBorderRadius(5), // 响应式圆角
+    marginRight: responsiveWidth(2), // 响应式间距
     backgroundColor: colors.riceWhite,
     borderWidth: 1,
     borderColor: colors.gray[300],
     alignItems: 'center',
-    minWidth: 60,
+    minWidth: responsiveWidth(12), // 响应式最小宽度
   },
   tabActive: {
     backgroundColor: colors.cinnabarRed,
     borderColor: colors.cinnabarRed,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(14), // 响应式字体
     color: colors.inkBlack,
     fontWeight: '500',
   },
@@ -403,42 +405,42 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   tabCount: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(12), // 响应式字体
     color: colors.inkBlack + '60',
-    marginTop: 2,
+    marginTop: responsiveHeight(0.5), // 响应式间距
   },
   tabCountActive: {
     color: colors.white + '80',
   },
   listContainer: {
-    padding: 16,
+    padding: responsiveWidth(4), // 响应式内边距
   },
   historyCard: {
-    marginBottom: 12,
+    marginBottom: responsiveHeight(3), // 响应式间距
   },
   historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: responsiveHeight(3), // 响应式间距
   },
   historyHeaderLeft: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: responsiveWidth(2), // 响应式间距
   },
   historyHeaderRight: {
     alignItems: 'flex-end',
   },
   typeTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: responsiveWidth(2), // 响应式内边距
+    paddingVertical: responsiveHeight(1), // 响应式内边距
+    borderRadius: responsiveBorderRadius(2), // 响应式圆角
   },
   typeTagText: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(12), // 响应式字体
     fontWeight: '600',
     color: colors.inkBlack,
   },

@@ -23,45 +23,10 @@ import { generateAIInterpretation as callAIInterpretationAPI } from '../utils/ai
 import { generateFullBaZiAnalysis } from '../utils/bazi-interpret';
 import { DivinationRecord } from '../database/models/DivinationRecord';
 import theme from '../styles/theme';
-const { colors, fonts, spacing, radii } = theme;
+import { responsiveFontSize, responsiveWidth, responsiveHeight } from '../styles/responsive';
 
-// 导入 BaziData 类型定义(与 BaZiInputScreen 一致)
-// 为避免循环依赖,这里重新声明
-interface BaziData {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  hourLabel: string;
-  location: string;
-  calendarType: 'solar' | 'lunar';
-  solarCorrection: boolean;
-  baziResult?: {
-    solarDate: string;
-    lunarDate: string;
-    ganZhi: {
-      year: { gan: string; zhi: string };
-      month: { gan: string; zhi: string };
-      day: { gan: string; zhi: string };
-      hour: { gan: string; zhi: string };
-    };
-    fiveElements: {
-      wood: number;
-      fire: number;
-      earth: number;
-      metal: number;
-      water: number;
-    };
-    shishen: string[];
-    wuxingDistribution: {
-      wood: number;
-      fire: number;
-      earth: number;
-      metal: number;
-      water: number;
-    };
-  };
-}
+const { colors, fonts, spacing, radii } = theme;
+const { width } = Dimensions.get('window');
 
 interface ResultScreenProps {
   onBack?: () => void;
@@ -610,8 +575,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   );
 };
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -750,7 +713,7 @@ const styles = StyleSheet.create({
   },
 
   wuxingLabel: {
-    width: 60,
+    width: responsiveWidth(12), // 响应式宽度
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -771,7 +734,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sourceHan,
     fontSize: fonts.sizes.sm,
     color: colors.gray[600],
-    width: 35,
+    width: responsiveWidth(8), // 响应式宽度
   },
 
   wuxingTrack: {
@@ -825,7 +788,7 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     color: colors.gray[700],
     fontWeight: '500',
-    width: 80,
+    width: responsiveWidth(16), // 响应式宽度
   },
 
   analysisValue: {

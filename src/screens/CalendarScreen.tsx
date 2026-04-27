@@ -336,7 +336,9 @@ export default function CalendarScreen() {
                 </Text>
               </View>
               
-              {/* 年份网格（60 年，5 列 x 12 行） */}\n              <FlatList\n                data={Array.from({ length: 60 }, (_, i) => selectedCentury * 100 + selectedHalfCentury * 50 + i)}
+              {/* 年份网格（60 年，5 列 x 12 行） */}
+              <FlatList
+                data={Array.from({ length: 60 }, (_, i) => selectedCentury * 100 + selectedHalfCentury * 50 + i)}
                 keyExtractor={(item) => item.toString()}
                 numColumns={5}
                 style={{ flex: 1, maxHeight: 450 }}
