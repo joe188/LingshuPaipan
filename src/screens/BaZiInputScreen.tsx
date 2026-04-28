@@ -240,7 +240,7 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
               <Text style={[styles.modalButton, styles.modalConfirm]}>确定</Text>
             </TouchableOpacity>
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minHeight: responsiveHeight(30) }}>
             <FlatList
               data={currentYears}
               keyExtractor={(item) => item.toString()}
@@ -265,6 +265,11 @@ export const BaZiInputScreen: React.FC<{ navigation: any }> = ({ navigation }) =
                   </Text>
                 </TouchableOpacity>
               )}
+              getItemLayout={(data, index) => ({
+                length: responsiveHeight(8),
+                offset: responsiveHeight(8) * index,
+                index,
+              })}
             />
             {/* 分页导航 */}
             <View style={styles.yearPagination}>
@@ -800,7 +805,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
-    maxHeight: '60%',
+    maxHeight: '70%',
+    minHeight: responsiveHeight(40),
   },
   modalHeader: {
     flexDirection: 'row',
